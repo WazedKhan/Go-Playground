@@ -15,13 +15,15 @@ func main() {
 }
 
 func userInput() {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print("Enter your name: ")
-	if scanner.Scan() {
-		name := scanner.Text()
-		fmt.Printf("Hello, %s!\n", name)
-	}
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading input:", err)
+	for {
+		scanner := bufio.NewScanner(os.Stdin)
+		fmt.Printf("Please enter your name (or type 'q' or 'quit' to exit): ")
+		if scanner.Scan() {
+			if input := scanner.Text(); input == "q" || input == "quit" {
+				fmt.Println("Goodbye!")
+				break
+			}
+			fmt.Printf("Hello, %s!\n", scanner.Text())
+		}
 	}
 }
