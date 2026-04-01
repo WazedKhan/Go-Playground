@@ -2,15 +2,15 @@ package hello
 
 const (
 	spanish = "Spanish"
-	french = "French"
+	french  = "French"
 
 	englishHelloPrefix = "Hello, "
 	spanishHelloPrefix = "Hola, "
-	frenchHelloPrefix = "Bonjour, "
+	frenchHelloPrefix  = "Bonjour, "
 )
 
 func Hello(name, language string) string {
-	if name == ""{
+	if name == "" {
 		name = "World"
 	}
 
@@ -19,12 +19,12 @@ func Hello(name, language string) string {
 
 func greetingPrefix(language string) (prefix string) {
 	switch language {
-		case spanish:
-			prefix = spanishHelloPrefix
-		case french:
-			prefix = frenchHelloPrefix
-		default:
-			prefix = englishHelloPrefix
+	case spanish:
+		prefix = spanishHelloPrefix
+	case french:
+		prefix = frenchHelloPrefix
+	default:
+		prefix = englishHelloPrefix
 	}
 	return
 }
