@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"cli-tool/utils"
+
 	"rsc.io/quote"
 )
 
@@ -15,13 +17,29 @@ func main() {
 }
 
 func userInput() {
-	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Print("Enter your name: ")
-	if scanner.Scan() {
-		name := scanner.Text()
-		fmt.Printf("Hello, %s!\n", name)
-	}
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading input:", err)
+	for {
+		scanner := bufio.NewScanner(os.Stdin)
+		fmt.Println("Select and Option: ")
+		utils.AvailableCommands()
+		if scanner.Scan() {
+			if input := scanner.Text(); input == "q" || input == "quit" {
+				fmt.Println("Goodbye!")
+				break
+			}
+
+			input := scanner.Text()
+			switch input {
+			case "h", "help":
+				fmt.Println("Help Command")
+			case "a", "add":
+				fmt.Println("Add Command")
+			case "l", "list":
+				fmt.Println("List Command")
+			case "d", "delete":
+				fmt.Println("Delete Command")
+			default:
+				fmt.Println("Unknown Command")
+			}
+		}
 	}
 }
