@@ -36,4 +36,13 @@ func TestSums(t *testing.T) {
 			t.Errorf("got %d want %d", got, want)
 		}
 	})
+
+	t.Run("get sum of tails", func(t *testing.T) {
+		got := SumAllTails([]int{1, 2}, []int{0, 9})
+		want := []int{2, 9}
+
+		if !slices.Equal(got, want) {
+			t.Errorf("got %d want %d", got, want)
+		}
+	})
 }
