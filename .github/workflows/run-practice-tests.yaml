@@ -27,9 +27,11 @@ jobs:
               run: cd practice && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
 
             - name: Upload coverage to Codecov
-              uses: codecov/codecov-action@v2
+              uses: codecov/codecov-action@v4
               with:
-                  file: practice/coverage.out
-                  flags: unittests
-                  name: codecov-umbrella
-                  fail_ci_if_error: true
+                file: practice/coverage.out
+                flags: unittests
+                name: codecov-report
+                fail_ci_if_error: true
+                token: ${{ secrets.CODECOV_TOKEN }}
+
