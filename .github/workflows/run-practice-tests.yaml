@@ -24,7 +24,8 @@ jobs:
               run: cd practice && go test -v ./...
 
             - name: Run tests with coverage of practice
-              run: cd practice && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out coverage.out
+              run: cd practice && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
+
             - name: Upload coverage to Codecov
               uses: codecov/codecov-action@v2
               with:
