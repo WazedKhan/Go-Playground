@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 
+	"cli-tool/repository"
 	"cli-tool/utils"
 
 	"rsc.io/quote"
@@ -21,6 +22,7 @@ func userInput() {
 		scanner := bufio.NewScanner(os.Stdin)
 		fmt.Println("Select and Option: ")
 		utils.AvailableCommands()
+		data := repository.GetTODOList(1)
 		if scanner.Scan() {
 			if input := scanner.Text(); input == "q" || input == "quit" {
 				fmt.Println("Goodbye!")
@@ -34,7 +36,7 @@ func userInput() {
 			case "a", "add":
 				fmt.Println("Add Command")
 			case "l", "list":
-				fmt.Println("List Command")
+				utils.ReadAbleTODOs(data)
 			case "d", "delete":
 				fmt.Println("Delete Command")
 			default:
