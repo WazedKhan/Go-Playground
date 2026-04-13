@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"cli-tool/models"
 	"fmt"
+
+	"cli-tool/models"
 )
 
 func ReadAbleTODOs(data []models.Todos) {

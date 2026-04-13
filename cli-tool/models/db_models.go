@@ -1,5 +1,6 @@
 package models
 
+// Todos structure for the TODO items in the application.
 type Todos struct {
 	Id        int64  `json:"id"`
 	Age       int64  `json:"age"`
