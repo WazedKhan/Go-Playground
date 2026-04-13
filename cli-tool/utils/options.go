@@ -3,10 +3,10 @@ package utils
 import "fmt"
 
 const (
-	HelpCommand = "help"
-	QuitCommand = "quit"
-	AddCommand  = "add"
-	ListCommand = "list"
+	HelpCommand   = "help"
+	QuitCommand   = "quit"
+	AddCommand    = "add"
+	ListCommand   = "list"
 	DeleteCommand = "delete"
 )
 
