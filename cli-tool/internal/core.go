@@ -39,7 +39,7 @@ func userInput() string {
 		case "a", "add":
 			fmt.Println("Add Command")
 		case "l", "list":
-			utils.ReadAbleTODOs(data)
+			utils.DisplayTodos(data)
 		case "d", "delete":
 			fmt.Println("Delete Command")
 		default:
