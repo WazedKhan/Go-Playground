@@ -1,10 +1,11 @@
 package repository
 
 import (
-	"cli-tool/models"
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"cli-tool/models"
 )
 
 func GetTODOList(id int64) []models.Todos {
