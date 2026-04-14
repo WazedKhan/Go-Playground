@@ -60,3 +60,19 @@ func AddTODO(todo models.Todos) error {
 	fmt.Println("TODO added successfully! ID:", todo.Id)
 	return nil
 }
+
+func UpdateTODO(todos []models.Todos) error {
+	fileData, err := json.MarshalIndent(todos, "", "  ")
+	if err != nil {
+		fmt.Println("failed to marshal data into json format with err: ", err)
+		return err
+	}
+
+	err = os.WriteFile("db/todos.json", fileData, 0644)
+	if err != nil {
+		fmt.Println("failed to write to json file with error:", err)
+		return err
+	}
+	fmt.Println("TODO updated successfully!")
+	return nil
+}
