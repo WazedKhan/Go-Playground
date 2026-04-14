@@ -27,7 +27,7 @@ func AppLoop() {
 // userInput reads user input from the command line and executes the corresponding command.
 func userInput() string {
 	scanner := bufio.NewScanner(os.Stdin)
-	data := repository.GetTODOList(1)
+	data := repository.GetTODOs()
 	var input string
 
 	if scanner.Scan() {
@@ -37,9 +37,9 @@ func userInput() string {
 		case "h", "help":
 			utils.AvailableCommands()
 		case "a", "add":
-			fmt.Println("Add Command")
+			CreateTodos()
 		case "l", "list":
-			utils.ReadAbleTODOs(data)
+			utils.DisplayTodos(data)
 		case "d", "delete":
 			fmt.Println("Delete Command")
 		default:
