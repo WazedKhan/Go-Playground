@@ -43,3 +43,15 @@ func MarkTodoDone(id int64) error {
 	repository.UpdateTODO(todos)
 	return nil
 }
+
+func DeleteTodo(id int64) error {
+	todos := repository.GetTODOs()
+	for index, todo := range todos {
+		if todo.Id == id {
+			todos = append(todos[:index], todos[index+1:]...)
+			break
+		}
+	}
+	repository.UpdateTODO(todos)
+	return nil
+}

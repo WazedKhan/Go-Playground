@@ -37,11 +37,18 @@ func userInput() string {
 
 func HandleCommands(input string) {
 	parts := strings.Fields(input)
+	if len(parts) < 2 {
+		fmt.Println("  Invalid command. Type 'todo -h' for help.")
+		return
+	} else if parts[0] != "todo" {
+		fmt.Println("  Unknown command. Type 'todo -h' for help.")
+		return
+	}
 
 	switch {
-	case input == "h" || input == "help":
+	case parts[1] == "-h" || parts[1] == "help":
 		utils.AvailableCommands()
-	case input == "a" || parts[1] == "add":
+	case parts[1] == "a" || parts[1] == "add":
 		CreateTodos()
 	case len(parts) == 2 && parts[1] == "list":
 		todos, _ := GetTodos()
@@ -50,8 +57,15 @@ func HandleCommands(input string) {
 		id, err := strconv.Atoi(parts[2])
 		if err != nil {
 			fmt.Println("  Invalid ID. Usage: todo done <id>")
+			return
 		}
 		MarkTodoDone(int64(id))
+	case len(parts) == 3 && parts[1] == "delete":
+		id, err := strconv.Atoi(parts[2])
+		if err != nil {
+			fmt.Println("  Invalid ID. Usage: todo delete <id>")
+		}
+		DeleteTodo(int64(id))
 	default:
 		fmt.Println("  Unknown command. Type 'h' for help.")
 	}
