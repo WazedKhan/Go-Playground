@@ -66,7 +66,22 @@ func HandleCommands(input string) {
 			fmt.Println("  Invalid ID. Usage: todo delete <id>")
 		}
 		DeleteTodo(int64(id))
+	case len(parts) == 3 && strings.Contains(parts[2], "--filter="):
+		filter := strings.TrimPrefix(parts[2], "--filter=")
+		todos, _ := GetFilteredTodos(filter)
+		utils.DisplayTodos(todos)
+	case len(parts) >= 4 && parts[0] == "todo" && parts[1] == "edit":
+		id, err := strconv.Atoi(parts[2])
+		if err != nil {
+			fmt.Println("  Invalid ID. Usage: todo edit <id> \"New title\"")
+		}
+		title, err := utils.ExtractQuotedTitle(input)
+		if err != nil {
+			fmt.Println("  Title must be in quotes. Usage: todo edit <id> \"New title\"")
+			return
+		}
+		EditTodo(int64(id), title)
 	default:
-		fmt.Println("  Unknown command. Type 'h' for help.")
+		fmt.Println("  Unknown command. Type '--h' for help.")
 	}
 }
