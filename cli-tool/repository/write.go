@@ -39,7 +39,7 @@ func WriteSetting(setting models.Setting) error {
 
 func AddTODO(todo models.Todos) error {
 	todos := GetTODOs()
-	todo.Id = int64((len(todos))) + 1
+	todo.Id = GetNextID(todos)
 	todos = append(todos, todo)
 
 	// check and update max title length
