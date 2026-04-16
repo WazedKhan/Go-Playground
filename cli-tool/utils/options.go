@@ -3,11 +3,12 @@ package utils
 import "fmt"
 
 const (
-	HelpCommand   = "help"
-	QuitCommand   = "quit"
-	AddCommand    = "add"
-	ListCommand   = "list"
-	DeleteCommand = "delete"
+	HelpCommand   = "todo help"
+	QuitCommand   = "todo quit"
+	AddCommand    = "todo add"
+	ListCommand   = "todo list"
+	DeleteCommand = "todo delete <id>"
+	DoneCommand   = "todo done <id>"
 )
 
 func AvailableCommands() {
@@ -16,4 +17,5 @@ func AvailableCommands() {
 	fmt.Println(" -", AddCommand)
 	fmt.Println(" -", ListCommand)
 	fmt.Println(" -", DeleteCommand)
+	fmt.Println(" -", DoneCommand)
 }
