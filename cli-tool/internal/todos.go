@@ -16,10 +16,11 @@ func GetTodos() ([]models.Todos, error) {
 	}
 	for index, todo := range todos {
 		todos[index].CreatedAt = utils.ConvertDateToRelativeTime(todo.CreatedAt)
-		if todo.Status == models.PENDING {
+		switch todo.Status {
+		case models.PENDING:
 			symbol := "○"
 			todos[index].Symbol = &symbol
-		} else if todo.Status == models.DONE {
+		case models.DONE:
 			symbol := "✓"
 			todos[index].Symbol = &symbol
 		}
