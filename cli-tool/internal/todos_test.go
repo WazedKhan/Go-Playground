@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"cli-tool/models"
@@ -131,6 +132,36 @@ func TestDeleteTodo(t *testing.T) {
 	onDisk := readTodosFromDisk(t, dir)
 	if len(onDisk) != 1 || onDisk[0].Id != 1 {
 		t.Fatalf("after DeleteTodo(2): %#v", onDisk)
+	}
+}
+
+func TestCreateTodos_readsTitleFromStdin(t *testing.T) {
+	dir := t.TempDir()
+	swapDataDir(t, dir)
+	writeSettingJSON(t, dir, 100)
+
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldStdin := os.Stdin
+	os.Stdin = r
+	t.Cleanup(func() {
+		os.Stdin = oldStdin
+		_ = r.Close()
+	})
+
+	go func() {
+		_, _ = w.WriteString("from stdin\n")
+		_ = w.Close()
+	}()
+
+	if err := CreateTodos(); err != nil {
+		t.Fatal(err)
+	}
+	onDisk := readTodosFromDisk(t, dir)
+	if len(onDisk) != 1 || !strings.Contains(onDisk[0].Title, "from stdin") {
+		t.Fatalf("after CreateTodos: %#v", onDisk)
 	}
 }
 
