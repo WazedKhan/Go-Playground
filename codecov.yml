@@ -1,0 +1,16 @@
+# https://docs.codecov.com/docs/codecovyml-reference
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 3%
+    patch:
+      default:
+        informational: true
+
+# Paths match `go test -coverprofile` output (module-rooted).
+ignore:
+  - "github.com/wazedkhan/go_with_test/main.go"
+  - "cli-tool/cmd/main.go"
+  - "learn-go/**"

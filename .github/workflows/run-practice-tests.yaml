@@ -35,7 +35,7 @@ jobs:
             - name: Upload coverage to Codecov
               uses: codecov/codecov-action@v4
               with:
-                file: practice/coverage.out
+                files: practice/coverage.out,cli-tool/coverage.out
                 flags: unittests
                 name: codecov-report
                 fail_ci_if_error: true
