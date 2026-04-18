@@ -12,9 +12,6 @@ import (
 
 // AppLoop is the main loop of the application that handles user input and executes commands.
 func AppLoop() {
-	fmt.Println("===================")
-	fmt.Println("Select and Option: ")
-	fmt.Println("===================")
 	utils.AvailableCommands()
 	for {
 		input := userInput()
@@ -72,6 +69,9 @@ func HandleCommands(input string) {
 		}
 		MarkTodoDone(int64(id))
 
+	case len(parts) == 2 && parts[1] == "done" && !utils.ContainHelpFlag(input):
+		SelectAndMarkTodoDone()
+
 	case len(parts) == 3 && parts[1] == "delete" && !utils.ContainHelpFlag(input):
 		id, err := strconv.Atoi(parts[2])
 		if err != nil {
@@ -111,6 +111,12 @@ func HandleCommands(input string) {
 
 	default:
 		if utils.ContainHelpFlag(input) {
+			key := parts[1]
+			utils.CommandHelp(key)
+			return
+		}
+		// try to get parts[1] as command for help
+		if len(parts) > 1 {
 			key := parts[1]
 			utils.CommandHelp(key)
 			return

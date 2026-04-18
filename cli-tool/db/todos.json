@@ -9,7 +9,7 @@
   {
     "id": 4,
     "title": "Complete pashe 1 today",
-    "status": "PENDING",
+    "status": "DONE",
     "createdAt": "3 days ago",
     "symbol": null
   },
@@ -23,8 +23,15 @@
   {
     "id": 8,
     "title": "Updated title",
-    "status": "PENDING",
+    "status": "DONE",
     "createdAt": "Just now",
+    "symbol": null
+  },
+  {
+    "id": 9,
+    "title": "Show off the project",
+    "status": "PENDING",
+    "createdAt": "2026-04-18 20:22:34",
     "symbol": null
   }
 ]
