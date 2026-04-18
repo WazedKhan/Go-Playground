@@ -17,20 +17,26 @@ func DisplayTodos(data []models.Todos) {
 
 	maxTitleLength := repository.GetMaxTitleLength()
 	if maxTitleLength < 5 {
-		maxTitleLength = 5 // minimum column width
+		maxTitleLength = 5
 	}
 
-	divider := strings.Repeat("─", maxTitleLength+46)
+	divider := strings.Repeat("─", maxTitleLength+52)
 
 	fmt.Printf("\n  %d TODO(s)\n", len(data))
 	fmt.Println("  " + divider)
-	fmt.Printf("  %-4s  %-*s  %-10s  %s\n", "ID", maxTitleLength, "Title", "Status", "Created At")
+	fmt.Printf("  %-4s  %-2s  %-*s  %-10s  %s\n", "ID", "  ", maxTitleLength, "Title", "Status", "Created At")
 	fmt.Println("  " + divider)
 
 	for _, todo := range data {
-		fmt.Printf("  %-4d  %-*s  %-10s  %s\n",
+		symbol := "  "
+		if todo.Symbol != nil {
+			symbol = *todo.Symbol
+		}
+
+		fmt.Printf("  %-4d  %-2s  %-*s  %-10s  %s\n",
 			todo.Id,
-			maxTitleLength, todo.Title,
+			symbol,
+			maxTitleLength, TruncateTitle(todo.Title, 50),
 			todo.Status,
 			todo.CreatedAt,
 		)

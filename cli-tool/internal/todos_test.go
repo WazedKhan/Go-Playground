@@ -156,7 +156,8 @@ func TestCreateTodos_readsTitleFromStdin(t *testing.T) {
 		_ = w.Close()
 	}()
 
-	if err := CreateTodos(); err != nil {
+	// CreateTodos will read from stdin, which we've set to our pipe. The goroutine writes "from stdin" to the pipe, simulating user input.
+	if err := CreateTodos("Buy Milk"); err != nil {
 		t.Fatal(err)
 	}
 	onDisk := readTodosFromDisk(t, dir)
