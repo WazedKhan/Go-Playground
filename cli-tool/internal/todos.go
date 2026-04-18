@@ -32,7 +32,7 @@ func CreateTodos(title string) error {
 	now := time.Now().Format("2006-01-02 15:04:05")
 	valid, errMsg := utils.IsValidTitle(title)
 	if !valid {
-		return fmt.Errorf(errMsg.Error())
+		return fmt.Errorf("%s", errMsg.Error())
 	}
 	todo := models.Todos{
 		Title:     title,
@@ -92,4 +92,81 @@ func EditTodo(id int64, title string) error {
 	}
 	repository.UpdateTODO(todos)
 	return nil
+}
+
+func GetPendingTodos() ([]models.Todos, error) {
+	todos, _ := GetTodos()
+	var pending []models.Todos
+	for _, todo := range todos {
+		if todo.Status == models.PENDING {
+			pending = append(pending, todo)
+		}
+	}
+	return pending, nil
+}
+
+func SelectAndDeleteTodo() {
+	todos, _ := GetTodos()
+	if len(todos) == 0 {
+		fmt.Println("  No todos to delete.")
+		return
+	}
+
+	labels := make([]string, len(todos))
+	for i, todo := range todos {
+		labels[i] = fmt.Sprintf("%d: %s", todo.Id, todo.Title)
+	}
+
+	index, _, err := utils.SelectPrompt("Select a TODO to delete", labels)
+	if err != nil {
+		fmt.Println("  No selection made. Returning to main menu.")
+		return
+	}
+
+	selected := todos[index]
+	confirmIndex, _, err := utils.SelectPrompt(
+		fmt.Sprintf("Delete \"%s\"?", selected.Title),
+		[]string{"No, cancel", "Yes, delete"},
+	)
+	if err != nil {
+		fmt.Println("  Prompt failed:", err)
+		return
+	}
+
+	if confirmIndex == 1 {
+		err := DeleteTodo(selected.Id)
+		if err != nil {
+			fmt.Println("  Failed to delete:", err)
+			return
+		}
+		fmt.Printf("  ✓ \"%s\" deleted.\n", selected.Title)
+	} else {
+		fmt.Println("  Cancelled.")
+	}
+}
+
+func SelectAndMarkTodoDone() {
+	todos, _ := GetPendingTodos()
+	if len(todos) == 0 {
+		fmt.Println("  No todos to mark as done.")
+		return
+	}
+
+	labels := make([]string, len(todos))
+	for i, todo := range todos {
+		labels[i] = fmt.Sprintf("%d: %s", todo.Id, todo.Title)
+	}
+	index, _, err := utils.SelectPrompt("Select a TODO to mark as done", labels)
+	if err != nil {
+		fmt.Println("  No selection made. Returning to main menu.")
+		return
+	}
+
+	selected := todos[index]
+	err = MarkTodoDone(selected.Id)
+	if err != nil {
+		fmt.Println("  Failed to mark as done:", err)
+		return
+	}
+	fmt.Printf("  ✓ \"%s\" marked as done.\n", selected.Title)
 }

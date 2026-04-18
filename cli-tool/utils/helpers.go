@@ -56,3 +56,7 @@ func TruncateTitle(title string, maxLength int) string {
 	}
 	return title[:maxLength-3] + "..."
 }
+
+func ContainHelpFlag(input string) bool {
+	return strings.Contains(input, HelpKeyword)
+}

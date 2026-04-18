@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"cli-tool/models"
@@ -135,34 +134,54 @@ func TestDeleteTodo(t *testing.T) {
 	}
 }
 
-func TestCreateTodos_readsTitleFromStdin(t *testing.T) {
+func TestCreateTodos_persistsTodo(t *testing.T) {
 	dir := t.TempDir()
 	swapDataDir(t, dir)
 	writeSettingJSON(t, dir, 100)
 
-	r, w, err := os.Pipe()
-	if err != nil {
-		t.Fatal(err)
-	}
-	oldStdin := os.Stdin
-	os.Stdin = r
-	t.Cleanup(func() {
-		os.Stdin = oldStdin
-		_ = r.Close()
-	})
-
-	go func() {
-		_, _ = w.WriteString("from stdin\n")
-		_ = w.Close()
-	}()
-
-	// CreateTodos will read from stdin, which we've set to our pipe. The goroutine writes "from stdin" to the pipe, simulating user input.
 	if err := CreateTodos("Buy Milk"); err != nil {
 		t.Fatal(err)
 	}
 	onDisk := readTodosFromDisk(t, dir)
-	if len(onDisk) != 1 || !strings.Contains(onDisk[0].Title, "from stdin") {
+	if len(onDisk) != 1 {
 		t.Fatalf("after CreateTodos: %#v", onDisk)
+	}
+	if onDisk[0].Title != "Buy Milk" || onDisk[0].Status != models.PENDING || onDisk[0].Id != 1 {
+		t.Fatalf("after CreateTodos: %#v", onDisk)
+	}
+}
+
+func TestCreateTodos_rejectsEmptyTitle(t *testing.T) {
+	dir := t.TempDir()
+	swapDataDir(t, dir)
+	writeSettingJSON(t, dir, 100)
+
+	if err := CreateTodos(""); err == nil {
+		t.Fatal("CreateTodos(\"\") expected error")
+	}
+	if _, err := os.Stat(filepath.Join(dir, "todos.json")); err == nil {
+		t.Fatal("expected no todos.json when create was rejected")
+	} else if !os.IsNotExist(err) {
+		t.Fatal(err)
+	}
+}
+
+func TestGetPendingTodos(t *testing.T) {
+	dir := t.TempDir()
+	swapDataDir(t, dir)
+	writeSettingJSON(t, dir, 10)
+	writeTodosJSON(t, dir, []models.Todos{
+		{Id: 1, Title: "a", Status: models.PENDING, CreatedAt: "t"},
+		{Id: 2, Title: "b", Status: models.DONE, CreatedAt: "t"},
+		{Id: 3, Title: "c", Status: models.PENDING, CreatedAt: "t"},
+	})
+
+	pending, err := GetPendingTodos()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(pending) != 2 {
+		t.Fatalf("GetPendingTodos() len=%d, want 2: %#v", len(pending), pending)
 	}
 }
 

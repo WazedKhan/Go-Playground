@@ -48,6 +48,31 @@ func TestHandleCommands_help(t *testing.T) {
 	})
 }
 
+func TestHandleCommands_add_success(t *testing.T) {
+	dir := t.TempDir()
+	prev := repository.DataDir
+	repository.DataDir = dir
+	t.Cleanup(func() { repository.DataDir = prev })
+	_ = os.WriteFile(filepath.Join(dir, "setting.json"), []byte(`{"maxTitleLength":100}`), 0644)
+
+	out := captureStdout(func() {
+		HandleCommands(`todo add "Ship feature"`)
+	})
+	if strings.Contains(out, "Error creating todo") {
+		t.Fatalf("unexpected error output:\n%s", out)
+	}
+	if !strings.Contains(out, "TODO added successfully") {
+		t.Fatalf("expected success message:\n%s", out)
+	}
+	raw, err := os.ReadFile(filepath.Join(dir, "todos.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(raw), "Ship feature") {
+		t.Fatalf("todos.json: %s", raw)
+	}
+}
+
 func TestHandleCommands_list(t *testing.T) {
 	dir := t.TempDir()
 	prev := repository.DataDir
