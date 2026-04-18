@@ -48,11 +48,22 @@ func HandleCommands(input string) {
 	switch {
 	case parts[1] == "-h" || parts[1] == "help":
 		utils.AvailableCommands()
-	case parts[1] == "a" || parts[1] == "add":
-		CreateTodos()
+
+	case len(parts) >= 3 && parts[0] == "todo" && parts[1] == "add":
+		title, err := utils.ExtractQuotedTitle(input)
+		if err != nil {
+			fmt.Println("  Title must be in quotes. Usage: todo add \"New todo\"")
+			return
+		}
+		createErr := CreateTodos(title)
+		if createErr != nil {
+			fmt.Println("  Error creating todo:", createErr)
+		}
+
 	case len(parts) == 2 && parts[1] == "list":
 		todos, _ := GetTodos()
 		utils.DisplayTodos(todos)
+
 	case len(parts) == 3 && parts[1] == "done":
 		id, err := strconv.Atoi(parts[2])
 		if err != nil {
@@ -60,16 +71,28 @@ func HandleCommands(input string) {
 			return
 		}
 		MarkTodoDone(int64(id))
+
 	case len(parts) == 3 && parts[1] == "delete":
 		id, err := strconv.Atoi(parts[2])
 		if err != nil {
 			fmt.Println("  Invalid ID. Usage: todo delete <id>")
+			return
 		}
-		DeleteTodo(int64(id))
+		err = DeleteTodo(int64(id))
+		if err != nil {
+			fmt.Println("  Error deleting todo:", err)
+		}
+
 	case len(parts) == 3 && strings.Contains(parts[2], "--filter="):
 		filter := strings.TrimPrefix(parts[2], "--filter=")
-		todos, _ := GetFilteredTodos(filter)
+		validFilter, err := utils.ValidateFilter(filter)
+		if err != nil {
+			fmt.Println("  Invalid filter. Use 'pending' or 'done'.")
+			return
+		}
+		todos, _ := GetFilteredTodos(validFilter)
 		utils.DisplayTodos(todos)
+
 	case len(parts) >= 4 && parts[0] == "todo" && parts[1] == "edit":
 		id, err := strconv.Atoi(parts[2])
 		if err != nil {
@@ -81,6 +104,7 @@ func HandleCommands(input string) {
 			return
 		}
 		EditTodo(int64(id), title)
+
 	default:
 		fmt.Println("  Unknown command. Type '--h' for help.")
 	}
