@@ -28,7 +28,7 @@ func WriteSetting(setting models.Setting) error {
 		return err
 	}
 
-	err = os.WriteFile("db/setting.json", fileData, 0644)
+	err = os.WriteFile(settingPath(), fileData, 0644)
 	if err != nil {
 		fmt.Println("failed to write to json file with error:", err)
 		return err
@@ -52,7 +52,7 @@ func AddTODO(todo models.Todos) error {
 		return err
 	}
 
-	err = os.WriteFile("db/todos.json", fileData, 0644)
+	err = os.WriteFile(todosPath(), fileData, 0644)
 	if err != nil {
 		fmt.Println("failed to write to json file with error:", err)
 		return err
@@ -68,7 +68,7 @@ func UpdateTODO(todos []models.Todos) error {
 		return err
 	}
 
-	err = os.WriteFile("db/todos.json", fileData, 0644)
+	err = os.WriteFile(todosPath(), fileData, 0644)
 	if err != nil {
 		fmt.Println("failed to write to json file with error:", err)
 		return err
