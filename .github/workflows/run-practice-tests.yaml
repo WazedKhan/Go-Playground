@@ -15,9 +15,11 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v5
               with:
-                # Reads the Go version directly from go.mod — stays in sync automatically.
-                # No need to hardcode a version string here.
-                go-version-file: "./practice/go.mod"
+                # Use cli-tool's go.mod: it is the newer of the two modules. Installing this
+                # version avoids golang/go#75031 ("no such tool covdata") when an older Go
+                # auto-downloads a toolchain and `go test -cover` hits a package with no tests
+                # (e.g. cli-tool/cmd).
+                go-version-file: "./cli-tool/go.mod"
                 cache: true
 
             - name: Run tests of practice
