@@ -15,21 +15,29 @@ jobs:
             - name: Set up Go
               uses: actions/setup-go@v5
               with:
-                # Reads the Go version directly from go.mod — stays in sync automatically.
-                # No need to hardcode a version string here.
-                go-version-file: "./practice/go.mod"
+                # Use cli-tool's go.mod: it is the newer of the two modules. Installing this
+                # version avoids golang/go#75031 ("no such tool covdata") when an older Go
+                # auto-downloads a toolchain and `go test -cover` hits a package with no tests
+                # (e.g. cli-tool/cmd).
+                go-version-file: "./cli-tool/go.mod"
                 cache: true
 
             - name: Run tests of practice
               run: cd practice && go test -v ./...
 
+            - name: Run tests of cli-tool
+              run: cd cli-tool && go test -v ./...
+
             - name: Run tests with coverage of practice
               run: cd practice && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
+
+            - name: Run tests with coverage of cli-tool
+              run: cd cli-tool && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
 
             - name: Upload coverage to Codecov
               uses: codecov/codecov-action@v4
               with:
-                file: practice/coverage.out
+                files: practice/coverage.out,cli-tool/coverage.out
                 flags: unittests
                 name: codecov-report
                 fail_ci_if_error: true

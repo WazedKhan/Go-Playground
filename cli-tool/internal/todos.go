@@ -55,3 +55,25 @@ func DeleteTodo(id int64) error {
 	repository.UpdateTODO(todos)
 	return nil
 }
+
+func GetFilteredTodos(filter string) ([]models.Todos, error) {
+	todos := repository.GetTODOs()
+	var filtered []models.Todos
+	for _, todo := range todos {
+		if todo.Status == filter {
+			filtered = append(filtered, todo)
+		}
+	}
+	return filtered, nil
+}
+
+func EditTodo(id int64, title string) error {
+	todos, _ := GetTodos()
+	for index, value := range todos {
+		if value.Id == id {
+			todos[index].Title = title
+		}
+	}
+	repository.UpdateTODO(todos)
+	return nil
+}

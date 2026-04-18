@@ -9,7 +9,7 @@ import (
 )
 
 func GetTODOs() []models.Todos {
-	content, err := os.ReadFile("db/todos.json")
+	content, err := os.ReadFile(todosPath())
 	if err != nil {
 		fmt.Println("error reading json file,", err)
 		return []models.Todos{}
@@ -24,7 +24,7 @@ func GetTODOs() []models.Todos {
 }
 
 func GetMaxTitleLength() int {
-	content, err := os.ReadFile("db/setting.json")
+	content, err := os.ReadFile(settingPath())
 	if err != nil {
 		fmt.Println("error reading json file,", err)
 		return 0
