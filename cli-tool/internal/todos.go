@@ -93,3 +93,43 @@ func EditTodo(id int64, title string) error {
 	repository.UpdateTODO(todos)
 	return nil
 }
+
+func SelectAndDeleteTodo() {
+	todos, _ := GetTodos()
+	if len(todos) == 0 {
+		fmt.Println("  No todos to delete.")
+		return
+	}
+
+	labels := make([]string, len(todos))
+	for i, todo := range todos {
+		labels[i] = fmt.Sprintf("%d: %s", todo.Id, todo.Title)
+	}
+
+	index, _, err := utils.SelectPrompt("Select a TODO to delete", labels)
+	if err != nil {
+		fmt.Println("  No selection made. Returning to main menu.")
+		return
+	}
+
+	selected := todos[index]
+	confirmIndex, _, err := utils.SelectPrompt(
+		fmt.Sprintf("Delete \"%s\"?", selected.Title),
+		[]string{"No, cancel", "Yes, delete"},
+	)
+	if err != nil {
+		fmt.Println("  Prompt failed:", err)
+		return
+	}
+
+	if confirmIndex == 1 {
+		err := DeleteTodo(selected.Id)
+		if err != nil {
+			fmt.Println("  Failed to delete:", err)
+			return
+		}
+		fmt.Printf("  ✓ \"%s\" deleted.\n", selected.Title)
+	} else {
+		fmt.Println("  Cancelled.")
+	}
+}

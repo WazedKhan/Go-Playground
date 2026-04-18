@@ -83,6 +83,9 @@ func HandleCommands(input string) {
 			fmt.Println("  Error deleting todo:", err)
 		}
 
+	case len(parts) == 2 && parts[1] == "delete" && !utils.ContainHelpFlag(input):
+		SelectAndDeleteTodo()
+
 	case len(parts) == 3 && strings.Contains(parts[2], "--filter=") && !utils.ContainHelpFlag(input):
 		filter := strings.TrimPrefix(parts[2], "--filter=")
 		validFilter, err := utils.ValidateFilter(filter)
