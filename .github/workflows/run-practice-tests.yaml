@@ -22,7 +22,7 @@ jobs:
 
             - name: Run tests of practice
               run: cd practice && go test -v ./...
-            
+
             - name: Run tests of cli-tool
               run: cd cli-tool && go test -v ./...
 
