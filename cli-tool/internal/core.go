@@ -38,18 +38,18 @@ func userInput() string {
 func HandleCommands(input string) {
 	parts := strings.Fields(input)
 	if len(parts) < 2 {
-		fmt.Println("  Invalid command. Type 'todo -h' for help.")
+		fmt.Println("  Invalid command. Type 'todo --help' for help.")
 		return
 	} else if parts[0] != "todo" {
-		fmt.Println("  Unknown command. Type 'todo -h' for help.")
+		fmt.Println("  Unknown command. Type 'todo --help' for help.")
 		return
 	}
 
 	switch {
-	case parts[1] == "-h" || parts[1] == "help":
+	case parts[1] == "-h" || parts[1] == "--help" || parts[1] == "help":
 		utils.AvailableCommands()
 
-	case len(parts) >= 3 && parts[0] == "todo" && parts[1] == "add":
+	case len(parts) >= 3 && parts[0] == "todo" && parts[1] == "add" && !utils.ContainHelpFlag(input):
 		title, err := utils.ExtractQuotedTitle(input)
 		if err != nil {
 			fmt.Println("  Title must be in quotes. Usage: todo add \"New todo\"")
@@ -60,11 +60,11 @@ func HandleCommands(input string) {
 			fmt.Println("  Error creating todo:", createErr)
 		}
 
-	case len(parts) == 2 && parts[1] == "list":
+	case len(parts) == 2 && parts[1] == "list" && !utils.ContainHelpFlag(input):
 		todos, _ := GetTodos()
 		utils.DisplayTodos(todos)
 
-	case len(parts) == 3 && parts[1] == "done":
+	case len(parts) == 3 && parts[1] == "done" && !utils.ContainHelpFlag(input):
 		id, err := strconv.Atoi(parts[2])
 		if err != nil {
 			fmt.Println("  Invalid ID. Usage: todo done <id>")
@@ -72,7 +72,7 @@ func HandleCommands(input string) {
 		}
 		MarkTodoDone(int64(id))
 
-	case len(parts) == 3 && parts[1] == "delete":
+	case len(parts) == 3 && parts[1] == "delete" && !utils.ContainHelpFlag(input):
 		id, err := strconv.Atoi(parts[2])
 		if err != nil {
 			fmt.Println("  Invalid ID. Usage: todo delete <id>")
@@ -83,7 +83,7 @@ func HandleCommands(input string) {
 			fmt.Println("  Error deleting todo:", err)
 		}
 
-	case len(parts) == 3 && strings.Contains(parts[2], "--filter="):
+	case len(parts) == 3 && strings.Contains(parts[2], "--filter=") && !utils.ContainHelpFlag(input):
 		filter := strings.TrimPrefix(parts[2], "--filter=")
 		validFilter, err := utils.ValidateFilter(filter)
 		if err != nil {
@@ -93,10 +93,11 @@ func HandleCommands(input string) {
 		todos, _ := GetFilteredTodos(validFilter)
 		utils.DisplayTodos(todos)
 
-	case len(parts) >= 4 && parts[0] == "todo" && parts[1] == "edit":
+	case len(parts) >= 4 && parts[0] == "todo" && parts[1] == "edit" && !utils.ContainHelpFlag(input):
 		id, err := strconv.Atoi(parts[2])
 		if err != nil {
 			fmt.Println("  Invalid ID. Usage: todo edit <id> \"New title\"")
+			return
 		}
 		title, err := utils.ExtractQuotedTitle(input)
 		if err != nil {
@@ -106,6 +107,11 @@ func HandleCommands(input string) {
 		EditTodo(int64(id), title)
 
 	default:
-		fmt.Println("  Unknown command. Type '--h' for help.")
+		if utils.ContainHelpFlag(input) {
+			key := parts[1]
+			utils.CommandHelp(key)
+			return
+		}
+		fmt.Println("  Unknown command. Type '--help' for help.")
 	}
 }

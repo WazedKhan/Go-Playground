@@ -32,7 +32,7 @@ func CreateTodos(title string) error {
 	now := time.Now().Format("2006-01-02 15:04:05")
 	valid, errMsg := utils.IsValidTitle(title)
 	if !valid {
-		return fmt.Errorf(errMsg.Error())
+		return fmt.Errorf("%s", errMsg.Error())
 	}
 	todo := models.Todos{
 		Title:     title,
