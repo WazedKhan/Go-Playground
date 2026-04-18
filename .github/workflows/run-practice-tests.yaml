@@ -22,9 +22,15 @@ jobs:
 
             - name: Run tests of practice
               run: cd practice && go test -v ./...
+            
+            - name: Run tests of cli-tool
+              run: cd cli-tool && go test -v ./...
 
             - name: Run tests with coverage of practice
               run: cd practice && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
+
+            - name: Run tests with coverage of cli-tool
+              run: cd cli-tool && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
 
             - name: Upload coverage to Codecov
               uses: codecov/codecov-action@v4
