@@ -18,26 +18,26 @@ jobs:
                 # Use cli-tool's go.mod: it is the newer of the two modules. Installing this
                 # version avoids golang/go#75031 ("no such tool covdata") when an older Go
                 # auto-downloads a toolchain and `go test -cover` hits a package with no tests
-                # (e.g. cli-tool/cmd).
-                go-version-file: "./cli-tool/go.mod"
+                # (e.g. projects/cli-tool/cmd).
+                go-version-file: "./projects/cli-tool/go.mod"
                 cache: true
 
             - name: Run tests of practice
               run: cd practice && go test -v ./...
 
             - name: Run tests of cli-tool
-              run: cd cli-tool && go test -v ./...
+              run: cd projects/cli-tool && go test -v ./...
 
             - name: Run tests with coverage of practice
               run: cd practice && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
 
             - name: Run tests with coverage of cli-tool
-              run: cd cli-tool && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
+              run: cd projects/cli-tool && go test -coverprofile=coverage.out ./... && go tool cover -func=coverage.out
 
             - name: Upload coverage to Codecov
               uses: codecov/codecov-action@v4
               with:
-                files: practice/coverage.out,cli-tool/coverage.out
+                files: practice/coverage.out,projects/cli-tool/coverage.out
                 flags: unittests
                 name: codecov-report
                 fail_ci_if_error: true
