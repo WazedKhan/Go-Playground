@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Go Interfaces — Learn by Building</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #21262d;
+    --accent: #00d9ff;
+    --accent2: #7ee787;
+    --accent3: #ff7b72;
+    --accent4: #d2a8ff;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --go-blue: #00add8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .hero {
+    background: linear-gradient(135deg, #0d1117 0%, #0c1e35 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 32px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(0,217,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--go-blue);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(90deg, #fff 0%, var(--accent) 60%, var(--accent4) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 16px;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: 16px;
+    max-width: 560px;
+  }
+
+  /* Nav pills */
+  .nav {
+    display: flex;
+    gap: 8px;
+    padding: 16px 32px;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav::-webkit-scrollbar { height: 0; }
+  .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-pill:hover, .nav-pill.active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* Layout */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Section */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* Concept card */
+  .concept-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .concept-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--accent);
+  }
+  .concept-card.green::before { background: var(--accent2); }
+  .concept-card.purple::before { background: var(--accent4); }
+  .concept-card.red::before { background: var(--accent3); }
+
+  .concept-card h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .step-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: rgba(0,217,255,0.15);
+    color: var(--accent);
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+  }
+  .green .step-badge { background: rgba(126,231,135,0.15); color: var(--accent2); }
+  .purple .step-badge { background: rgba(210,168,255,0.15); color: var(--accent4); }
+  .red .step-badge { background: rgba(255,123,114,0.15); color: var(--accent3); }
+
+  .concept-card p {
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-size: 15px;
+  }
+
+  /* Code block */
+  .code-block {
+    background: #010409;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: #161b22;
+    border-bottom: 1px solid var(--border);
+  }
+  .code-filename {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .copy-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--accent); }
+  pre {
+    padding: 20px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  /* Syntax highlighting */
+  .kw { color: #ff7b72; }
+  .type { color: #79c0ff; }
+  .fn { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .cm { color: #8b949e; font-style: italic; }
+  .num { color: #f0883e; }
+  .iface { color: #7ee787; }
+
+  /* Analogy box */
+  .analogy {
+    background: rgba(0,217,255,0.05);
+    border: 1px solid rgba(0,217,255,0.2);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .analogy strong { color: var(--accent); }
+
+  /* Key insight */
+  .insight {
+    background: rgba(126,231,135,0.05);
+    border: 1px solid rgba(126,231,135,0.2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .insight-icon { font-size: 18px; flex-shrink: 0; }
+  .insight p { color: #c3e6c3; margin: 0; }
+
+  /* Mistake box */
+  .mistake {
+    background: rgba(255,123,114,0.05);
+    border: 1px solid rgba(255,123,114,0.2);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 14px;
+    color: #ffb3ae;
+  }
+  .mistake strong { color: var(--accent3); }
+
+  /* Project steps */
+  .step-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .step-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .step-item:hover { border-color: var(--accent); }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--border);
+    margin-bottom: 8px;
+  }
+  .step-item h3 { font-size: 15px; margin-bottom: 6px; }
+  .step-item p { font-size: 13px; color: var(--muted); }
+
+  /* Summary table */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  th {
+    text-align: left;
+    padding: 10px 14px;
+    background: var(--surface);
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid rgba(33,38,45,0.5); }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-tag">// Go Language</div>
+  <h1>Interfaces,<br>Demystified</h1>
+  <p>Learn Go interfaces by building a real payment processor. Step by step, concept by concept.</p>
+</div>
+
+<div class="nav">
+  <button class="nav-pill active" onclick="show('what')">1. What is an Interface?</button>
+  <button class="nav-pill" onclick="show('why')">2. Why Use Them?</button>
+  <button class="nav-pill" onclick="show('project')">3. The Project</button>
+  <button class="nav-pill" onclick="show('build')">4. Build It</button>
+  <button class="nav-pill" onclick="show('advanced')">5. Advanced Patterns</button>
+  <button class="nav-pill" onclick="show('pitfalls')">6. Pitfalls</button>
+</div>
+
+<div class="container">
+
+  <!-- SECTION 1: WHAT -->
+  <div class="section active" id="what">
+    <div class="concept-card">
+      <h2><span class="step-badge">CONCEPT 01</span> What is a Go Interface?</h2>
+      <p>An interface is a <strong>contract</strong>. It says: "I don't care what type you are — as long as you can do these things."</p>
+
+      <div class="analogy">
+        <strong>Real-world analogy:</strong> A USB port is an interface. Your laptop doesn't care if you plug in a mouse, keyboard, or flash drive — as long as it has the right connector shape (implements the contract), it works.
+      </div>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">basic_interface.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="cm">// Define the interface — this is the CONTRACT</span>
+<span class="kw">type</span> <span class="iface">Greeter</span> <span class="kw">interface</span> {
+    <span class="fn">Greet</span>() <span class="type">string</span>
+}
+
+<span class="cm">// Two DIFFERENT types, both satisfy the Greeter interface</span>
+<span class="kw">type</span> <span class="type">English</span> <span class="kw">struct</span>{}
+<span class="kw">func</span> (e <span class="type">English</span>) <span class="fn">Greet</span>() <span class="type">string</span> { <span class="kw">return</span> <span class="str">"Hello!"</span> }
+
+<span class="kw">type</span> <span class="type">Bangla</span> <span class="kw">struct</span>{}
+<span class="kw">func</span> (b <span class="type">Bangla</span>) <span class="fn">Greet</span>() <span class="type">string</span> { <span class="kw">return</span> <span class="str">"Assalamu Alaikum!"</span> }
+
+<span class="cm">// This function accepts ANYTHING that satisfies Greeter</span>
+<span class="kw">func</span> <span class="fn">SayHello</span>(g <span class="iface">Greeter</span>) {
+    fmt.<span class="fn">Println</span>(g.<span class="fn">Greet</span>())
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="fn">SayHello</span>(<span class="type">English</span>{}) <span class="cm">// prints: Hello!</span>
+    <span class="fn">SayHello</span>(<span class="type">Bangla</span>{})  <span class="cm">// prints: Assalamu Alaikum!</span>
+}</pre>
+      </div>
+
+      <div class="insight">
+        <span class="insight-icon">💡</span>
+        <p><strong>The magic:</strong> In Go, you NEVER say "I implement this interface." If your type has all the required methods, it automatically satisfies the interface. This is called <strong>implicit implementation</strong>.</p>
+      </div>
+    </div>
+
+    <div class="concept-card green">
+      <h2><span class="step-badge">CONCEPT 02</span> Implicit vs Explicit</h2>
+      <p>Unlike Java or C#, Go doesn't use <code>implements</code> keyword. The compiler figures it out automatically.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">implicit.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="cm">// Java style (NOT Go):</span>
+<span class="cm">// class Dog implements Animal { ... }  ❌</span>
+
+<span class="cm">// Go style — just have the method, that's it!</span>
+<span class="kw">type</span> <span class="iface">Animal</span> <span class="kw">interface</span> {
+    <span class="fn">Sound</span>() <span class="type">string</span>
+}
+
+<span class="kw">type</span> <span class="type">Dog</span> <span class="kw">struct</span>{ Name <span class="type">string</span> }
+
+<span class="cm">// Dog satisfies Animal — no declaration needed ✅</span>
+<span class="kw">func</span> (d <span class="type">Dog</span>) <span class="fn">Sound</span>() <span class="type">string</span> {
+    <span class="kw">return</span> <span class="str">"Woof"</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: WHY -->
+  <div class="section" id="why">
+    <div class="concept-card">
+      <h2><span class="step-badge">MOTIVATION</span> Why Do Interfaces Exist?</h2>
+      <p>Without interfaces, you'd need a separate function for every type. With interfaces, one function handles all of them.</p>
+
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">without_interface.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="cm">// ❌ WITHOUT interfaces — repetitive, fragile</span>
+<span class="kw">func</span> <span class="fn">ProcessCreditCard</span>(c CreditCard) { c.<span class="fn">Charge</span>(<span class="num">100</span>) }
+<span class="kw">func</span> <span class="fn">ProcessPayPal</span>(p PayPal)         { p.<span class="fn">Charge</span>(<span class="num">100</span>) }
+<span class="kw">func</span> <span class="fn">ProcessCrypto</span>(c Crypto)         { c.<span class="fn">Charge</span>(<span class="num">100</span>) }
+<span class="cm">// Every new payment method = new function 😭</span>
+
+<span class="cm">// ✅ WITH interfaces — one function rules them all</span>
+<span class="kw">type</span> <span class="iface">PaymentMethod</span> <span class="kw">interface</span> {
+    <span class="fn">Charge</span>(amount <span class="type">float64</span>) <span class="type">error</span>
+}
+
+<span class="kw">func</span> <span class="fn">ProcessPayment</span>(p <span class="iface">PaymentMethod</span>, amount <span class="type">float64</span>) {
+    <span class="kw">if</span> err := p.<span class="fn">Charge</span>(amount); err != <span class="kw">nil</span> {
+        fmt.<span class="fn">Println</span>(<span class="str">"Payment failed:"</span>, err)
+        <span class="kw">return</span>
+    }
+    fmt.<span class="fn">Println</span>(<span class="str">"Payment successful!"</span>)
+}
+<span class="cm">// New payment method? Just implement Charge() and done ✅</span></pre>
+      </div>
+    </div>
+
+    <div class="step-grid">
+      <div class="step-item">
+        <div class="step-num">01</div>
+        <h3>Flexibility</h3>
+        <p>Swap implementations without changing calling code</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">02</div>
+        <h3>Testability</h3>
+        <p>Inject fake/mock implementations in tests easily</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">03</div>
+        <h3>Extensibility</h3>
+        <p>Add new types without modifying existing functions</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">04</div>
+        <h3>Decoupling</h3>
+        <p>Your function doesn't need to know the concrete type</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: PROJECT -->
+  <div class="section" id="project">
+    <div class="concept-card">
+      <h2><span class="step-badge">PROJECT</span> Mini Payment Processor</h2>
+      <p>You'll build a payment system that handles multiple payment methods. This is a classic real-world use case for interfaces.</p>
+    </div>
+
+    <div class="concept-card green">
+      <h2>Project Structure</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">file structure</span>
+        </div>
+        <pre>payment-processor/
+├── main.go
+├── payment.go       <span class="cm">← interface definition</span>
+├── creditcard.go    <span class="cm">← implementation 1</span>
+├── paypal.go        <span class="cm">← implementation 2</span>
+├── crypto.go        <span class="cm">← implementation 3</span>
+└── processor.go     <span class="cm">← uses the interface</span></pre>
+      </div>
+    </div>
+
+    <div class="concept-card purple">
+      <h2>What You'll Learn</h2>
+      <table>
+        <tr><th>Concept</th><th>Where in Project</th></tr>
+        <tr><td>Define interface</td><td>payment.go</td></tr>
+        <tr><td>Multiple implementations</td><td>creditcard.go, paypal.go, crypto.go</td></tr>
+        <tr><td>Pass interface as argument</td><td>processor.go</td></tr>
+        <tr><td>Slice of interfaces</td><td>main.go</td></tr>
+        <tr><td>Type assertion</td><td>main.go (bonus)</td></tr>
+        <tr><td>Empty interface (any)</td><td>advanced section</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 4: BUILD -->
+  <div class="section" id="build">
+
+    <div class="concept-card">
+      <h2><span class="step-badge">STEP 1</span> Define the Interface</h2>
+      <p>Start by asking: "What do ALL payment methods need to do?" That becomes your interface.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">payment.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="kw">package</span> main
+
+<span class="cm">// PaymentMethod is the contract every payment type must fulfill</span>
+<span class="kw">type</span> <span class="iface">PaymentMethod</span> <span class="kw">interface</span> {
+    <span class="fn">Charge</span>(amount <span class="type">float64</span>) <span class="type">error</span>
+    <span class="fn">Refund</span>(amount <span class="type">float64</span>) <span class="type">error</span>
+    <span class="fn">Name</span>() <span class="type">string</span>
+}</pre>
+      </div>
+      <div class="insight">
+        <span class="insight-icon">💡</span>
+        <p>Keep interfaces small. Go's standard library mostly uses 1-2 method interfaces. Small = more reusable.</p>
+      </div>
+    </div>
+
+    <div class="concept-card green">
+      <h2><span class="step-badge">STEP 2</span> Implement: Credit Card</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">creditcard.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="kw">type</span> <span class="type">CreditCard</span> <span class="kw">struct</span> {
+    CardNumber <span class="type">string</span>
+    Balance    <span class="type">float64</span>
+}
+
+<span class="kw">func</span> (c *<span class="type">CreditCard</span>) <span class="fn">Charge</span>(amount <span class="type">float64</span>) <span class="type">error</span> {
+    <span class="kw">if</span> c.Balance < amount {
+        <span class="kw">return</span> fmt.<span class="fn">Errorf</span>(<span class="str">"insufficient balance: have %.2f, need %.2f"</span>, c.Balance, amount)
+    }
+    c.Balance -= amount
+    fmt.<span class="fn">Printf</span>(<span class="str">"[CreditCard] Charged $%.2f. Remaining: $%.2f\n"</span>, amount, c.Balance)
+    <span class="kw">return nil</span>
+}
+
+<span class="kw">func</span> (c *<span class="type">CreditCard</span>) <span class="fn">Refund</span>(amount <span class="type">float64</span>) <span class="type">error</span> {
+    c.Balance += amount
+    fmt.<span class="fn">Printf</span>(<span class="str">"[CreditCard] Refunded $%.2f\n"</span>, amount)
+    <span class="kw">return nil</span>
+}
+
+<span class="kw">func</span> (c *<span class="type">CreditCard</span>) <span class="fn">Name</span>() <span class="type">string</span> {
+    <span class="kw">return</span> fmt.<span class="fn">Sprintf</span>(<span class="str">"CreditCard ****%s"</span>, c.CardNumber[<span class="kw">len</span>(c.CardNumber)-<span class="num">4</span>:])
+}</pre>
+      </div>
+    </div>
+
+    <div class="concept-card purple">
+      <h2><span class="step-badge">STEP 3</span> Implement: PayPal</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">paypal.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="kw">type</span> <span class="type">PayPal</span> <span class="kw">struct</span> {
+    Email   <span class="type">string</span>
+    Balance <span class="type">float64</span>
+}
+
+<span class="kw">func</span> (p *<span class="type">PayPal</span>) <span class="fn">Charge</span>(amount <span class="type">float64</span>) <span class="type">error</span> {
+    <span class="kw">if</span> p.Balance < amount {
+        <span class="kw">return</span> fmt.<span class="fn">Errorf</span>(<span class="str">"PayPal: not enough funds"</span>)
+    }
+    p.Balance -= amount
+    fmt.<span class="fn">Printf</span>(<span class="str">"[PayPal] Charged $%.2f from %s\n"</span>, amount, p.Email)
+    <span class="kw">return nil</span>
+}
+
+<span class="kw">func</span> (p *<span class="type">PayPal</span>) <span class="fn">Refund</span>(amount <span class="type">float64</span>) <span class="type">error</span> {
+    p.Balance += amount
+    fmt.<span class="fn">Printf</span>(<span class="str">"[PayPal] Refunded $%.2f to %s\n"</span>, amount, p.Email)
+    <span class="kw">return nil</span>
+}
+
+<span class="kw">func</span> (p *<span class="type">PayPal</span>) <span class="fn">Name</span>() <span class="type">string</span> {
+    <span class="kw">return</span> <span class="str">"PayPal: "</span> + p.Email
+}</pre>
+      </div>
+    </div>
+
+    <div class="concept-card red">
+      <h2><span class="step-badge">STEP 4</span> The Processor — Interface in Action</h2>
+      <p>This is where interfaces shine. The processor doesn't care WHAT type it receives.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">processor.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="kw">type</span> <span class="type">Order</span> <span class="kw">struct</span> {
+    ID     <span class="type">string</span>
+    Amount <span class="type">float64</span>
+}
+
+<span class="cm">// ProcessOrder only knows about the PaymentMethod interface</span>
+<span class="cm">// It has NO idea if it's CreditCard, PayPal, or Crypto</span>
+<span class="kw">func</span> <span class="fn">ProcessOrder</span>(order <span class="type">Order</span>, payment <span class="iface">PaymentMethod</span>) {
+    fmt.<span class="fn">Printf</span>(<span class="str">"\n=== Processing Order %s ===\n"</span>, order.ID)
+    fmt.<span class="fn">Printf</span>(<span class="str">"Using: %s\n"</span>, payment.<span class="fn">Name</span>())
+
+    <span class="kw">if</span> err := payment.<span class="fn">Charge</span>(order.Amount); err != <span class="kw">nil</span> {
+        fmt.<span class="fn">Printf</span>(<span class="str">"❌ Failed: %v\n"</span>, err)
+        <span class="kw">return</span>
+    }
+    fmt.<span class="fn">Println</span>(<span class="str">"✅ Order complete!"</span>)
+}
+
+<span class="cm">// Process MULTIPLE payments — slice of interfaces!</span>
+<span class="kw">func</span> <span class="fn">ProcessAll</span>(orders []<span class="type">Order</span>, methods []<span class="iface">PaymentMethod</span>) {
+    <span class="kw">for</span> i, order := <span class="kw">range</span> orders {
+        <span class="fn">ProcessOrder</span>(order, methods[i%<span class="kw">len</span>(methods)])
+    }
+}</pre>
+      </div>
+    </div>
+
+    <div class="concept-card">
+      <h2><span class="step-badge">STEP 5</span> Wire It Together in main.go</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">main.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> <span class="str">"fmt"</span>
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    <span class="cm">// Create concrete types</span>
+    card := &<span class="type">CreditCard</span>{CardNumber: <span class="str">"1234567890123456"</span>, Balance: <span class="num">500</span>}
+    pp   := &<span class="type">PayPal</span>{Email: <span class="str">"user@example.com"</span>, Balance: <span class="num">200</span>}
+
+    <span class="cm">// Store them as interfaces — this is polymorphism!</span>
+    <span class="kw">var</span> methods []<span class="iface">PaymentMethod</span> = []<span class="iface">PaymentMethod</span>{card, pp}
+
+    orders := []<span class="type">Order</span>{
+        {ID: <span class="str">"ORD-001"</span>, Amount: <span class="num">99.99</span>},
+        {ID: <span class="str">"ORD-002"</span>, Amount: <span class="num">49.99</span>},
+        {ID: <span class="str">"ORD-003"</span>, Amount: <span class="num">999.00</span>}, <span class="cm">// this will fail</span>
+    }
+
+    <span class="fn">ProcessAll</span>(orders, methods)
+
+    <span class="cm">// Type assertion — check the real type at runtime</span>
+    <span class="kw">for</span> _, m := <span class="kw">range</span> methods {
+        <span class="kw">if</span> cc, ok := m.(*<span class="type">CreditCard</span>); ok {
+            fmt.<span class="fn">Printf</span>(<span class="str">"\nCredit card balance: $%.2f\n"</span>, cc.Balance)
+        }
+    }
+}</pre>
+      </div>
+      <div class="insight">
+        <span class="insight-icon">🎯</span>
+        <p><strong>Run it:</strong> <code>go run .</code> — You'll see each payment method processing orders differently, but the processor code never changed!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: ADVANCED -->
+  <div class="section" id="advanced">
+    <div class="concept-card">
+      <h2><span class="step-badge">ADVANCED</span> Type Assertions & Type Switches</h2>
+      <p>Sometimes you need to get the real type back from an interface variable.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">type_assertions.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="cm">// Type assertion — "I think this is a CreditCard"</span>
+<span class="kw">var</span> p <span class="iface">PaymentMethod</span> = &<span class="type">CreditCard</span>{Balance: <span class="num">100</span>}
+
+<span class="cm">// Safe assertion (won't panic)</span>
+<span class="kw">if</span> cc, ok := p.(*<span class="type">CreditCard</span>); ok {
+    fmt.<span class="fn">Println</span>(<span class="str">"It's a credit card with balance:"</span>, cc.Balance)
+}
+
+<span class="cm">// Type switch — handle multiple types cleanly</span>
+<span class="kw">func</span> <span class="fn">Describe</span>(p <span class="iface">PaymentMethod</span>) {
+    <span class="kw">switch</span> v := p.(<span class="kw">type</span>) {
+    <span class="kw">case</span> *<span class="type">CreditCard</span>:
+        fmt.<span class="fn">Printf</span>(<span class="str">"Credit card ending in %s\n"</span>, v.CardNumber[<span class="num">12</span>:])
+    <span class="kw">case</span> *<span class="type">PayPal</span>:
+        fmt.<span class="fn">Printf</span>(<span class="str">"PayPal account: %s\n"</span>, v.Email)
+    <span class="kw">default</span>:
+        fmt.<span class="fn">Printf</span>(<span class="str">"Unknown payment method: %T\n"</span>, v)
+    }
+}</pre>
+      </div>
+    </div>
+
+    <div class="concept-card green">
+      <h2><span class="step-badge">ADVANCED</span> Interface Composition</h2>
+      <p>Interfaces can embed other interfaces — build bigger contracts from smaller ones.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">composition.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="cm">// Small, focused interfaces</span>
+<span class="kw">type</span> <span class="iface">Charger</span> <span class="kw">interface</span> {
+    <span class="fn">Charge</span>(amount <span class="type">float64</span>) <span class="type">error</span>
+}
+
+<span class="kw">type</span> <span class="iface">Refunder</span> <span class="kw">interface</span> {
+    <span class="fn">Refund</span>(amount <span class="type">float64</span>) <span class="type">error</span>
+}
+
+<span class="cm">// Composed interface — embeds both</span>
+<span class="kw">type</span> <span class="iface">FullPayment</span> <span class="kw">interface</span> {
+    <span class="iface">Charger</span>
+    <span class="iface">Refunder</span>
+    <span class="fn">Name</span>() <span class="type">string</span>
+}
+
+<span class="cm">// Now you can accept just Charger for charge-only functions</span>
+<span class="kw">func</span> <span class="fn">QuickCharge</span>(c <span class="iface">Charger</span>, amount <span class="type">float64</span>) <span class="type">error</span> {
+    <span class="kw">return</span> c.<span class="fn">Charge</span>(amount)
+}</pre>
+      </div>
+    </div>
+
+    <div class="concept-card purple">
+      <h2><span class="step-badge">ADVANCED</span> Testing with Mock Interfaces</h2>
+      <p>This is where interfaces really pay off — you can inject fake implementations for testing.</p>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">payment_test.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="cm">// Mock implementation — only used in tests</span>
+<span class="kw">type</span> <span class="type">MockPayment</span> <span class="kw">struct</span> {
+    ShouldFail <span class="type">bool</span>
+    Charged    <span class="type">float64</span>
+}
+
+<span class="kw">func</span> (m *<span class="type">MockPayment</span>) <span class="fn">Charge</span>(amount <span class="type">float64</span>) <span class="type">error</span> {
+    <span class="kw">if</span> m.ShouldFail {
+        <span class="kw">return</span> fmt.<span class="fn">Errorf</span>(<span class="str">"mock: charge failed"</span>)
+    }
+    m.Charged = amount
+    <span class="kw">return nil</span>
+}
+<span class="kw">func</span> (m *<span class="type">MockPayment</span>) <span class="fn">Refund</span>(<span class="type">float64</span>) <span class="type">error</span> { <span class="kw">return nil</span> }
+<span class="kw">func</span> (m *<span class="type">MockPayment</span>) <span class="fn">Name</span>() <span class="type">string</span>        { <span class="kw">return</span> <span class="str">"MockPayment"</span> }
+
+<span class="kw">func</span> <span class="fn">TestProcessOrder</span>(t *testing.T) {
+    mock := &<span class="type">MockPayment</span>{}
+    order := <span class="type">Order</span>{ID: <span class="str">"TEST-1"</span>, Amount: <span class="num">50.0</span>}
+
+    <span class="fn">ProcessOrder</span>(order, mock) <span class="cm">// pass mock, not real payment</span>
+
+    <span class="kw">if</span> mock.Charged != <span class="num">50.0</span> {
+        t.<span class="fn">Errorf</span>(<span class="str">"expected 50.0, got %v"</span>, mock.Charged)
+    }
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: PITFALLS -->
+  <div class="section" id="pitfalls">
+    <div class="concept-card red">
+      <h2><span class="step-badge">PITFALL 01</span> Nil Interface vs Nil Pointer</h2>
+      <div class="mistake">
+        <strong>Common gotcha:</strong> A nil pointer inside an interface is NOT the same as a nil interface.
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">nil_trap.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="kw">var</span> cc *<span class="type">CreditCard</span> = <span class="kw">nil</span>
+<span class="kw">var</span> p  <span class="iface">PaymentMethod</span> = cc
+
+<span class="cm">// p is NOT nil — it has type info (*CreditCard) but nil value!</span>
+fmt.<span class="fn">Println</span>(p == <span class="kw">nil</span>)  <span class="cm">// false 😱</span>
+
+<span class="cm">// Safe check: use a typed nil</span>
+<span class="kw">var</span> p2 <span class="iface">PaymentMethod</span> = <span class="kw">nil</span>
+fmt.<span class="fn">Println</span>(p2 == <span class="kw">nil</span>) <span class="cm">// true ✅</span></pre>
+      </div>
+    </div>
+
+    <div class="concept-card">
+      <h2><span class="step-badge">PITFALL 02</span> Pointer vs Value Receivers</h2>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">receivers.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="cm">// If you define methods with pointer receivers...</span>
+<span class="kw">func</span> (c *<span class="type">CreditCard</span>) <span class="fn">Charge</span>(amount <span class="type">float64</span>) <span class="type">error</span> { ... }
+
+<span class="cm">// You MUST use a pointer when assigning to interface</span>
+<span class="kw">var</span> p <span class="iface">PaymentMethod</span> = &<span class="type">CreditCard</span>{}  <span class="cm">// ✅ pointer</span>
+<span class="kw">var</span> p <span class="iface">PaymentMethod</span> = <span class="type">CreditCard</span>{}   <span class="cm">// ❌ compile error</span>
+
+<span class="cm">// Rule: pointer receivers → use pointer. Value receivers → either works.</span></pre>
+      </div>
+    </div>
+
+    <div class="concept-card green">
+      <h2><span class="step-badge">BEST PRACTICE</span> Accept Interfaces, Return Structs</h2>
+      <div class="analogy">
+        <strong>Go proverb:</strong> "Accept interfaces, return concrete types." Your functions should accept interfaces (flexible) but return concrete structs (clear).
+      </div>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-filename">best_practice.go</span>
+          <button class="copy-btn" onclick="copyCode(this)">copy</button>
+        </div>
+        <pre><span class="cm">// ✅ Accept interface (flexible input)</span>
+<span class="kw">func</span> <span class="fn">ProcessPayment</span>(p <span class="iface">PaymentMethod</span>) <span class="type">error</span> { ... }
+
+<span class="cm">// ✅ Return concrete type (clear output)</span>
+<span class="kw">func</span> <span class="fn">NewCreditCard</span>(number <span class="type">string</span>) *<span class="type">CreditCard</span> {
+    <span class="kw">return</span> &<span class="type">CreditCard</span>{CardNumber: number, Balance: <span class="num">0</span>}
+}
+
+<span class="cm">// ❌ Avoid returning interfaces unless necessary</span>
+<span class="kw">func</span> <span class="fn">NewPayment</span>() <span class="iface">PaymentMethod</span> { ... } <span class="cm">// why?</span></pre>
+      </div>
+    </div>
+
+    <div class="concept-card purple">
+      <h2><span class="step-badge">NEXT STEPS</span> Keep Practicing</h2>
+      <table>
+        <tr><th>Challenge</th><th>Interface Concept</th></tr>
+        <tr><td>Add a Crypto payment method</td><td>Adding a new implementation</td></tr>
+        <tr><td>Add a Logger interface to processor</td><td>Dependency injection</td></tr>
+        <tr><td>Create a retry wrapper</td><td>Interface wrapping (decorator)</td></tr>
+        <tr><td>Write tests for all payment types</td><td>Mock interfaces in testing</td></tr>
+        <tr><td>Use io.Reader/io.Writer</td><td>Standard library interfaces</td></tr>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-pill').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.code-block').querySelector('pre');
+  const text = pre.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied!';
+    setTimeout(() => btn.textContent = 'copy', 2000);
+  });
+}
+</script>
+</body>
+</html>
