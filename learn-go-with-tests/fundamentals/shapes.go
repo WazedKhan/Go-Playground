@@ -19,9 +19,7 @@ func Perimeter(rectangle Rectangle) float64 {
 	return 2 * (rectangle.Width + rectangle.Height)
 }
 
-
-
-func (r Rectangle) Area() float64{
+func (r Rectangle) Area() float64 {
 	return r.Height * r.Width
 }
 
