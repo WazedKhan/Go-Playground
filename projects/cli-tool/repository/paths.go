@@ -13,3 +13,7 @@ func todosPath() string {
 func settingPath() string {
 	return filepath.Join(DataDir, "setting.json")
 }
+
+func sqlitePath() string {
+	return filepath.Join(DataDir, "todos.db")
+}
