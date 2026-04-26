@@ -8,6 +8,19 @@ import (
 	"cli-tool/models"
 )
 
+func (j *jsonStore) GetTodos() ([]models.Todos, error) {
+	content, err := os.ReadFile(j.filePath)
+	if err != nil {
+		return nil, fmt.Errorf("error reading json file: %w", err)
+	}
+
+	var todos []models.Todos
+	if err := json.Unmarshal(content, &todos); err != nil {
+		return nil, fmt.Errorf("error unmarshalling json: %w", err)
+	}
+	return todos, nil
+}
+
 func GetTODOs() []models.Todos {
 	content, err := os.ReadFile(todosPath())
 	if err != nil {
