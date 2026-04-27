@@ -4,6 +4,8 @@ import (
 	"cli-tool/models"
 )
 
+var activeStore TodoStore = NewJsonStore(todosPath())
+
 type TodoStore interface {
 	GetTodos() ([]models.Todos, error)
 	AddTodo(todo models.Todos) error
@@ -16,4 +18,8 @@ type jsonStore struct {
 
 func NewJsonStore(filePath string) TodoStore {
 	return &jsonStore{filePath: filePath}
+}
+
+func SetTodoStore(s TodoStore) {
+	activeStore = s
 }

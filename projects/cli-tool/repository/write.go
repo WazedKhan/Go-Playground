@@ -62,46 +62,6 @@ func (j *jsonStore) AddTodo(todo models.Todos) error {
 	return nil
 }
 
-func AddTODO(todo models.Todos) error {
-	todos := GetTODOs()
-	todo.Id = GetNextID(todos)
-	todos = append(todos, todo)
-
-	// check and update max title length
-	UpdateMaxTitleLength(int64(len(todo.Title)))
-
-	// convert struct into json
-	fileData, err := json.MarshalIndent(todos, "", "  ")
-	if err != nil {
-		fmt.Println("failed to marshal data into json format with err: ", err)
-		return err
-	}
-
-	err = os.WriteFile(todosPath(), fileData, 0644)
-	if err != nil {
-		fmt.Println("failed to write to json file with error:", err)
-		return err
-	}
-	fmt.Println("TODO added successfully! ID:", todo.Id)
-	return nil
-}
-
-func UpdateTODO(todos []models.Todos) error {
-	fileData, err := json.MarshalIndent(todos, "", "  ")
-	if err != nil {
-		fmt.Println("failed to marshal data into json format with err: ", err)
-		return err
-	}
-
-	err = os.WriteFile(todosPath(), fileData, 0644)
-	if err != nil {
-		fmt.Println("failed to write to json file with error:", err)
-		return err
-	}
-	fmt.Println("TODO updated successfully!")
-	return nil
-}
-
 func (j *jsonStore) ReplaceAll(todos []models.Todos) error {
 	content, err := json.MarshalIndent(todos, "", "  ")
 	if err != nil {
@@ -116,4 +76,12 @@ func (j *jsonStore) ReplaceAll(todos []models.Todos) error {
 	}
 	fmt.Println("TODO updated successfully!")
 	return nil
+}
+
+func AddTODO(todo models.Todos) error {
+	return activeStore.AddTodo(todo)
+}
+
+func UpdateTODO(todos []models.Todos) error {
+	return activeStore.ReplaceAll(todos)
 }

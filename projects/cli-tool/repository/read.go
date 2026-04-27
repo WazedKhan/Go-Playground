@@ -22,14 +22,9 @@ func (j *jsonStore) GetTodos() ([]models.Todos, error) {
 }
 
 func GetTODOs() []models.Todos {
-	content, err := os.ReadFile(todosPath())
+	todos, err := activeStore.GetTodos()
 	if err != nil {
-		fmt.Println("error reading json file,", err)
-		return []models.Todos{}
-	}
-	var todos []models.Todos
-	if err := json.Unmarshal(content, &todos); err != nil {
-		fmt.Println("error un-marshalling json file,", err)
+		fmt.Println(err)
 		return []models.Todos{}
 	}
 
