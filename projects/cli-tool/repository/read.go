@@ -2,21 +2,33 @@ package repository
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
 	"cli-tool/models"
 )
 
-func GetTODOs() []models.Todos {
+func (j *jsonStore) GetTodos() ([]models.Todos, error) {
 	content, err := os.ReadFile(todosPath())
 	if err != nil {
-		fmt.Println("error reading json file,", err)
-		return []models.Todos{}
+		if errors.Is(err, os.ErrNotExist) {
+			return []models.Todos{}, nil
+		}
+		return nil, fmt.Errorf("error reading json file: %w", err)
 	}
+
 	var todos []models.Todos
 	if err := json.Unmarshal(content, &todos); err != nil {
-		fmt.Println("error un-marshalling json file,", err)
+		return nil, fmt.Errorf("error unmarshalling json: %w", err)
+	}
+	return todos, nil
+}
+
+func GetTODOs() []models.Todos {
+	todos, err := activeStore.GetTodos()
+	if err != nil {
+		fmt.Println(err)
 		return []models.Todos{}
 	}
 

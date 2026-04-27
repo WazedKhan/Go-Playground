@@ -1,12 +1,30 @@
 package main
 
 import (
-	"fmt"
+	"database/sql"
+	"flag"
+	"log"
 
 	"cli-tool/internal"
+	"cli-tool/repository"
 )
 
 func main() {
-	fmt.Println("Welcome to Go Cli Tool")
+	useDB := flag.Bool("db", false, "use sqlite backend")
+	flag.Parse()
+
+	if *useDB {
+		db, err := sql.Open("sqlite3", repository.TodoSqlitePath())
+		if err != nil {
+			log.Fatal("failed to open sqlite", err)
+		}
+		defer db.Close()
+
+		store, err := repository.InitSqliteStore(db)
+		if err != nil {
+			log.Fatal("failed to initialize sqlite store", err)
+		}
+		repository.SetTodoStore(store)
+	}
 	internal.AppLoop()
 }
