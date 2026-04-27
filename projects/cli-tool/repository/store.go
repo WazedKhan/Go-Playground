@@ -4,7 +4,7 @@ import (
 	"cli-tool/models"
 )
 
-var activeStore TodoStore = NewJsonStore(todosPath())
+var activeStore TodoStore = NewJsonStore()
 
 type TodoStore interface {
 	GetTodos() ([]models.Todos, error)
@@ -12,12 +12,12 @@ type TodoStore interface {
 	ReplaceAll(todos []models.Todos) error
 }
 
-type jsonStore struct {
-	filePath string
-}
+// jsonStore reads and writes via todosPath() so repository.DataDir changes
+// (e.g. in tests) take effect without reinitializing the store.
+type jsonStore struct{}
 
-func NewJsonStore(filePath string) TodoStore {
-	return &jsonStore{filePath: filePath}
+func NewJsonStore() TodoStore {
+	return &jsonStore{}
 }
 
 func SetTodoStore(s TodoStore) {

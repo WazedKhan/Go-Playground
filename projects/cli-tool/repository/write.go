@@ -53,7 +53,7 @@ func (j *jsonStore) AddTodo(todo models.Todos) error {
 		return err
 	}
 
-	err = os.WriteFile(j.filePath, fileData, 0644)
+	err = os.WriteFile(todosPath(), fileData, 0644)
 	if err != nil {
 		fmt.Println("failed to write to json file with error:", err)
 		return err
@@ -69,7 +69,7 @@ func (j *jsonStore) ReplaceAll(todos []models.Todos) error {
 		return err
 	}
 
-	err = os.WriteFile(j.filePath, content, 0644)
+	err = os.WriteFile(todosPath(), content, 0644)
 	if err != nil {
 		fmt.Println("failed to write to json file with error:", err)
 		return err

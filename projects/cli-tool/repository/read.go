@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -9,8 +10,11 @@ import (
 )
 
 func (j *jsonStore) GetTodos() ([]models.Todos, error) {
-	content, err := os.ReadFile(j.filePath)
+	content, err := os.ReadFile(todosPath())
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return []models.Todos{}, nil
+		}
 		return nil, fmt.Errorf("error reading json file: %w", err)
 	}
 
