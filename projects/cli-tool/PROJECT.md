@@ -1,113 +1,413 @@
-# CLI TODO tool — project overview
 
-## What it is
+# CLI TODO Tool — Project Overview
 
-A small **interactive terminal TODO application** written in Go. You run a binary, type natural commands like `todo add "Buy milk"`, and data is persisted under a configurable data directory (default `./db`).
+A compact, interactive terminal TODO application built in **Go** to strengthen practical backend engineering skills through real project structure, storage abstraction, testing, and maintainable architecture.
 
-It is structured as a learning playground: clear package boundaries, two persistence backends, and tests around core behavior.
+---
 
-## Tech stack
+# Overview
 
-| Area | Choice |
-|------|--------|
-| Language | Go 1.26+ (`go.mod`) |
-| Interactive prompts | `github.com/manifoldco/promptui` |
-| Optional database | SQLite via `github.com/mattn/go-sqlite3` |
-| Default storage | JSON files (`todos.json`, `setting.json`) |
+This project is designed as both a usable productivity tool and a structured Go learning environment.
 
-## Package layout
+Users run a compiled binary and interact through natural commands such as:
 
-| Package | Role |
-|---------|------|
-| `cmd` | `main`: parses `-db` flag, optionally wires SQLite store, starts `internal.AppLoop`. |
-| `internal` | Application loop, command routing (`HandleCommands`), todo use-cases (list, add, edit, delete, mark done, filters). |
-| `repository` | `TodoStore` interface, JSON implementation, SQLite implementation, paths, read/write helpers. |
-| `models` | `Todos`, `Setting`, status constants. |
-| `utils` | Help text, quoted-title parsing, display formatting, validation, prompt UI. |
+```bash
+todo add "Buy milk"
+todo list
+todo done 3
+```
 
-## Current features
+Tasks are persisted locally using either:
 
-- **REPL-style loop**: prompts until `q` / `quit`.
-- **Commands** (prefix `todo`): `add`, `list` (with optional `--filter=pending|done`), `done`, `delete`, `edit`, help variants.
-- **Title rules**: validation and max length driven by `setting.json`.
-- **Relative dates**: `createdAt` shown in a friendlier form in the list.
-- **Dual backend**: default JSON store; `-db` uses SQLite (`db/todo.db` under the same data dir concept).
-- **Interactive flows**: `promptui` for delete/done when no ID is passed.
+* **JSON files** (default)
+* **SQLite** (optional)
 
-## Data layout (default)
+The application emphasizes:
 
-- `repository.DataDir` defaults to `./db` (see `repository/paths.go`).
-- JSON mode: `todos.json`, `setting.json` in that directory.
-- SQLite mode: `todo.db` in that directory (when using `-db`).
+* Clean package separation
+* Interface-driven design
+* Multiple persistence layers
+* Testing core workflows
+* Practical CLI engineering
 
-## Build and test
+---
+
+# Tech Stack
+
+| Area                | Choice                                 |
+| ------------------- | -------------------------------------- |
+| Language            | Go 1.26+                               |
+| Interactive Prompts | `github.com/manifoldco/promptui`       |
+| Default Storage     | JSON (`todos.json`,`setting.json`)     |
+| Optional Database   | SQLite (`github.com/mattn/go-sqlite3`) |
+
+---
+
+# Project Structure
+
+```txt
+projects/cli-tool/
+│
+├── cmd/
+│   └── main.go                # Entry point, flag parsing, app bootstrap
+│
+├── internal/
+│   ├── app.go                 # Main REPL loop
+│   ├── commands.go            # Command routing
+│   └── todo_actions.go        # Core TODO operations
+│
+├── repository/
+│   ├── store.go               # TodoStore interface
+│   ├── json_store.go          # JSON backend
+│   ├── sqlite_store.go        # SQLite backend
+│   └── paths.go               # Data directory configuration
+│
+├── models/
+│   ├── todo.go                # Todo entity
+│   └── settings.go            # Validation settings
+│
+├── utils/
+│   ├── parser.go              # Input parsing
+│   ├── display.go             # Formatting output
+│   ├── validation.go          # Title validation
+│   └── prompt.go              # Prompt helpers
+│
+├── db/                        # Runtime storage
+│
+├── Makefile
+└── go.mod
+```
+
+---
+
+# Core Features
+
+## Interactive REPL
+
+* Continuous command loop
+* Exit with:
+  * `q`
+  * `quit`
+
+---
+
+## Supported Commands
+
+| Command                      | Description          |
+| ---------------------------- | -------------------- |
+| `todo add "task"`            | Add a new TODO       |
+| `todo list`                  | List all TODOs       |
+| `todo list --filter=pending` | Show pending tasks   |
+| `todo list --filter=done`    | Show completed tasks |
+| `todo done [id]`             | Mark task complete   |
+| `todo delete [id]`           | Delete task          |
+| `todo edit [id]`             | Edit task            |
+| `todo help`                  | Help menu            |
+
+---
+
+## Validation System
+
+* Max title length configurable
+* Rules stored in `setting.json`
+* User-friendly validation messages
+
+---
+
+## UX Enhancements
+
+* Human-readable relative dates
+* Interactive prompts when IDs are omitted
+* Cleaner task displays
+
+---
+
+## Storage Backends
+
+### JSON Mode (Default)
+
+```txt
+db/
+├── todos.json
+└── setting.json
+```
+
+---
+
+### SQLite Mode (`-db` flag)
+
+```txt
+db/
+└── todo.db
+```
+
+---
+
+# Build & Run
+
+## Build
 
 ```bash
 cd projects/cli-tool
 go build -o cli-tool ./cmd
-./cli-tool              # JSON backend
-./cli-tool -db          # SQLite backend
+```
+
+---
+
+## Run (JSON)
+
+```bash
+./cli-tool
+```
+
+---
+
+## Run (SQLite)
+
+```bash
+./cli-tool -db
+```
+
+---
+
+## Test
+
+```bash
 go test ./...
 ```
 
-The `Makefile` also defines `build`, `run`, `test`, and formatting targets.
+---
+
+## Makefile Targets
+
+```bash
+make build
+make run
+make test
+make fmt
+```
 
 ---
 
-## What to improve (robustness and code quality)
+# Architecture Strengths
 
-These are ordered roughly by impact vs. effort for a learning project.
+## Strong Learning Value
 
-1. **Configuration instead of only a global `DataDir`**  
-   Today tests swap `repository.DataDir`. A small config struct (or `XDG_CONFIG_HOME`-style paths) passed into the app would remove hidden global state and make behavior obvious at the call site.
+This project introduces:
 
-2. **Consistent error handling in `HandleCommands`**  
-   Some branches ignore errors from helpers (for example list/filter paths). Surfacing errors to the user (or a single `log`/`slog` path) avoids silent failures.
-
-3. **Replace ad-hoc `fmt.Println` in repository with structured logging**  
-   Side effects in the store make testing noisy and couple persistence to UI. Prefer returning errors / result types and letting `internal` or `cmd` print user-facing messages.
-
-4. **JSON vs SQLite parity**  
-   SQLite `AddTodo` uses auto-increment IDs; JSON assigns IDs in application code. Document the differences or align behavior (e.g. always return assigned ID from the store interface).
-
-5. **Command parsing**  
-   `strings.Fields` splits quoted phrases awkwardly. For learning, try a tiny lexer, `regexp`, or a library (`cobra` / `kong`) so `todo add "multi word title"` is parsed reliably without edge-case bugs.
-
-6. **Concurrency and globals**  
-   Package-level `activeStore` and `DataDir` are fine for a CLI process, but document that they are not goroutine-safe if you ever add background work or HTTP mode.
-
-7. **Dependencies**  
-   `go-sqlite3` is CGO; builds need a C toolchain. For portability experiments, consider `modernc.org/sqlite` (pure Go) as an alternative.
-
-8. **CI and hygiene**  
-   Add a minimal GitHub Action (or similar): `go test ./...`, `go vet ./...`, and optionally `staticcheck` or `golangci-lint`.
-
-9. **Documentation in-repo**  
-   This file plus a short “Contributing / layout” section keeps onboarding cheap as the project grows.
+* Interfaces
+* Dependency abstraction
+* Storage backends
+* REPL systems
+* File persistence
+* SQL integration
+* Testable design
 
 ---
 
-## Feature ideas (learning value)
+## Practical Software Engineering Concepts
 
-Pick a few; each teaches different Go or systems skills.
-
-| Idea | What you learn |
-|------|----------------|
-| **Subcommands with Cobra or Kong** | CLI design, flags, shell completion, testing CLIs. |
-| **`--data-dir` / `TODO_DATA_DIR` env** | Configuration, `flag` package, 12-factor style defaults. |
-| **Non-interactive mode** | Same binary usable in scripts: `todo add "x" && todo list` then exit (no REPL). |
-| **Due dates and sorting** | Time APIs, schema migration (JSON + SQL), list ordering. |
-| **Priority or tags** | Modeling, filtering, SQLite indexes. |
-| **Undo last change** | Small command stack or event log; careful JSON rewrite. |
-| **Export / import** | `encoding/json` streaming, backup workflows. |
-| **Integration tests** | Build binary with `testing`, run with `os/exec`, assert on files/DB. |
-| **Fuzzing** | `go test -fuzz` on parsers (`ExtractQuotedTitle`, filters). |
-| **HTTP + JSON API (optional)** | Same `TodoStore` behind `net/http`, context cancellation, timeouts. |
-| **Migrations for SQLite** | Versioned `CREATE`/`ALTER`, forward-only migrations table. |
-| **Windows paths and CI** | `filepath`, line endings, cross-OS tests if you care about portability. |
+* Separation of concerns
+* Command routing
+* Configurable validation
+* Extensible feature growth
+* Backend portability
 
 ---
 
-## Summary
+# Key Improvement Areas
 
-This project is a **compact Go CLI** with a **repository abstraction**, **JSON and SQLite** storage, and **tests** around commands and persistence. The highest-leverage improvements are **less global state**, **clearer errors**, and **cleaner separation between storage and printing**. Feature work that pairs well with learning includes **real CLI parsing**, **env-based config**, and **one vertical slice** (due dates or undo) end to end including migrations and tests.
+## 1. Configuration Management
+
+### Current:
+
+Global `DataDir`
+
+### Better:
+
+Inject config struct:
+
+```go
+type Config struct {
+    DataDir string
+    UseSQLite bool
+}
+```
+
+### Benefit:
+
+* Removes hidden global state
+* Improves testability
+* Supports future env variables
+
+---
+
+## 2. Error Handling
+
+### Current:
+
+Some silent failures
+
+### Better:
+
+Centralize error handling
+
+### Benefit:
+
+* Easier debugging
+* Cleaner user feedback
+* Better production practices
+
+---
+
+## 3. Repository Purity
+
+### Current:
+
+Repository prints directly
+
+### Better:
+
+Return results/errors only
+
+### Benefit:
+
+* Cleaner architecture
+* Easier testing
+* UI decoupling
+
+---
+
+## 4. Command Parsing
+
+### Current:
+
+`strings.Fields`
+
+### Problem:
+
+Poor quote handling
+
+### Better Options:
+
+* Custom lexer
+* `regexp`
+* `cobra`
+* `kong`
+
+---
+
+## 5. Backend Consistency
+
+### Problem:
+
+JSON and SQLite assign IDs differently
+
+### Better:
+
+Unify through interface contracts
+
+---
+
+## 6. CI/CD Hygiene
+
+Recommended:
+
+```bash
+go test ./...
+go vet ./...
+staticcheck ./...
+```
+
+---
+
+# High-Value Feature Ideas
+
+| Feature           | Learning Outcome        |
+| ----------------- | ----------------------- |
+| Cobra/Kong CLI    | Advanced CLI design     |
+| `--data-dir`      | Config systems          |
+| Env vars          | 12-factor principles    |
+| Due dates         | Time APIs + migrations  |
+| Priority/tags     | Data modeling           |
+| Undo              | Event sourcing basics   |
+| Export/import     | Data workflows          |
+| Integration tests | Binary validation       |
+| Fuzzing           | Parser reliability      |
+| HTTP API          | Service architecture    |
+| SQLite migrations | Production DB practices |
+
+---
+
+# Recommended Learning Roadmap
+
+## Phase 1 — Polish Core
+
+* Config struct
+* Better parsing
+* Error cleanup
+* Logging
+* CI pipeline
+
+---
+
+## Phase 2 — Feature Depth
+
+* Due dates
+* Tags
+* Sorting
+* Non-interactive mode
+
+---
+
+## Phase 3 — Advanced Engineering
+
+* Cobra migration
+* HTTP API
+* Migration system
+* Fuzz tests
+* Cross-platform support
+
+---
+
+# Final Assessment
+
+## Current Status:
+
+A strong intermediate-level Go CLI learning project.
+
+---
+
+## Best Parts:
+
+* Clear architecture
+* Dual persistence
+* Good testing opportunities
+* Real-world engineering patterns
+
+---
+
+## Biggest Next Wins:
+
+* Remove globals
+* Improve parser
+* Add configuration
+* Strengthen CI
+* Expand one major feature fully
+
+---
+
+# Bottom Line
+
+This project is already more than a beginner TODO app.
+
+It serves as a practical foundation for learning:
+
+* Go project architecture
+* Interfaces
+* Persistence layers
+* Testing
+* CLI systems
+* System extensibility
+
+With targeted improvements, it can evolve into a portfolio-worthy backend engineering project.
