@@ -1,27 +1,52 @@
 package main
 
-import "fmt"
+import (
+	"flag"
+	"fmt"
+	"payment-processor/cmd"
+	"payment-processor/provider"
+)
+
+const (
+	BKASH  = "bkash"
+	NAGAD  = "nagad"
+	ROCKET = "rocket"
+)
+
+func printRes(res cmd.PaymentResult, providerTag string) {
+	percentage := (res.Fee / res.Amount) * 100
+	fmt.Printf("💰 %s Payment Initiated \n", providerTag)
+	fmt.Printf("   Amount  : %.2f BDT\n", res.Amount)
+	fmt.Printf("   Fee     : %.2f BDT (%.2f%%)\n", res.Fee, percentage)
+	fmt.Printf("   Total   : %.2f BDT\n", res.Total)
+	fmt.Println("   Status  : Success ✓")
+}
 
 func main() {
-	// Create concrete types
-	card := &CreditCard{CardNumber: "1234567890123456", Balance: 500}
-	// pp   := &PayPal{Email: "user@example.com", Balance: 200}
+	amount := flag.Float64("amount", 0, "")
+	providerName := flag.String("provider", "", "")
+	flag.Parse()
 
-	// Store them as interfaces — this is polymorphism!
-	var methods []PaymentMethod = []PaymentMethod{card}
 
-	orders := []Order{
-		{ID: "ORD-001", Amount: 99.99},
-		{ID: "ORD-002", Amount: 49.99},
-		{ID: "ORD-003", Amount: 999.00}, // this will fail
+	var p cmd.PaymentProvider
+	switch *providerName {
+	case BKASH:
+		p = provider.Bkash{}
+
+	case NAGAD:
+		p = provider.Nagad{}
+
+	case ROCKET:
+		p = provider.Rocket{}
+	default:
+		fmt.Println("unknown provider")
+    	return
 	}
 
-	ProcessAll(orders, methods)
-
-	// Type assertion — check the real type at runtime
-	for _, m := range methods {
-		if cc, ok := m.(*CreditCard); ok {
-			fmt.Printf("\nCredit card balance: $%.2f\n", cc.Balance)
-		}
+	res, err := p.Pay(*amount)
+	if err != nil {
+		fmt.Printf("error: %v\n", err)
+		return
 	}
+	printRes(res, *providerName)
 }
