@@ -14,6 +14,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Fprint(w, "no value found with given key:", key)
 		log.Println(fmt.Errorf("no value found with given, %s\n", key))
+		return // do I need to return anything as im func says no return as I dont think it should
 	}
 	fmt.Fprint(w, *value)
 }
