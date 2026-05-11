@@ -4,29 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-)
 
-var hashMap = make(map[string]string)
+	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/handler"
+)
 
 func Greeting(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Hello, World!")
-}
-
-func Get(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Query().Get("key")
-	value, ok := hashMap[key]
-	if !ok {
-		fmt.Fprint(w, "no value found with given key:", key)
-		log.Println(fmt.Errorf("no value found with given, %s\n", key))
-	}
-	fmt.Fprint(w, value)
-}
-
-func Set(w http.ResponseWriter, r *http.Request) {
-	key := r.URL.Query().Get("key")
-	value := r.URL.Query().Get("value")
-	hashMap[key] = value
-	fmt.Fprintf(w, "value %s stored with key %s", value, key)
 }
 
 func main() {
@@ -35,8 +18,8 @@ func main() {
 	http.HandleFunc("/", Greeting)
 
 	// get route
-	http.HandleFunc("/get", Get)
-	http.HandleFunc("/set", Set)
+	http.HandleFunc("/get", handler.Get)
+	http.HandleFunc("/set", handler.Set)
 
 	http.HandleFunc("/hi", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hi")
