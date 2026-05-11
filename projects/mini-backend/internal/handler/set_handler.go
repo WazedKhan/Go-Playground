@@ -11,7 +11,7 @@ import (
 func Set(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get("key")
 	value := r.URL.Query().Get("value")
-	data := models.User{key:value}
+	data := models.User{key: value}
 	ok, err := repository.WriteJsonFile(data)
 	if !ok {
 		fmt.Println(err)

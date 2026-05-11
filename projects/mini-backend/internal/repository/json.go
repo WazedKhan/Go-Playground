@@ -34,7 +34,7 @@ func WriteJsonFile(data models.User) (bool, error) {
 func ReadJsonFileByKey(key string) (*string, error) {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Printf("failed to read from json file(%s): %q",filePath, err)
+		fmt.Printf("failed to read from json file(%s): %q", filePath, err)
 	}
 
 	var res models.User
@@ -49,7 +49,7 @@ func ReadJsonFileByKey(key string) (*string, error) {
 func ReadJsonFile() (map[string]string, error) {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
-		fmt.Printf("failed to read from json file(%s): %q",filePath, err)
+		fmt.Printf("failed to read from json file(%s): %q", filePath, err)
 	}
 
 	var res models.User
