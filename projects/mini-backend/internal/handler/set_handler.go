@@ -14,7 +14,7 @@ func Set(w http.ResponseWriter, r *http.Request) {
 	data := models.User{key: value}
 	ok, err := repository.WriteJsonFile(data)
 	if !ok {
-		fmt.Fprint(w,err)
+		fmt.Fprint(w, err)
 	}
 	fmt.Fprintf(w, "value %s stored with key %s \n", value, key)
 }
