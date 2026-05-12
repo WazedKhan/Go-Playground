@@ -15,9 +15,9 @@ var filePath = filepath.Join("./internal/db", "storage.json")
 func WriteJsonFile(data models.User) (bool, error) {
 	existingData, _ := ReadJsonFile()
 	if existingData != nil {
-		maps.Copy(existingData, data)
+		maps.Copy(data, existingData)
 	}
-	fileData, err := json.MarshalIndent(existingData, "", "  ")
+	fileData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		fmt.Printf("failed to marshall data: %q", err)
 		return false, err

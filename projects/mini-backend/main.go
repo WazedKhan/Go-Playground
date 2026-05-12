@@ -25,7 +25,7 @@ func main() {
 		fmt.Fprintf(w, "Hi")
 	})
 
-	port := ":5000"
+	port := ":8000"
 	fmt.Println("Server is running on port" + port)
 
 	// Start server on port specified above
