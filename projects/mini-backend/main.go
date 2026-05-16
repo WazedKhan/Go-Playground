@@ -18,10 +18,13 @@ func main() {
 	mux.HandleFunc("/get", handler.Get)
 	mux.HandleFunc("/set", handler.Set)
 	mux.HandleFunc("/health", middleware.GetHealth)
+	mux.HandleFunc("/metrics", middleware.RouteMetrics)
 
 	port := ":8000"
 	fmt.Println("Server is running on port" + port)
-	middleware := middleware.LoggerMiddleware(mux)
+	middleware := middleware.LoggerMiddleware(
+		middleware.MetricsMiddleware(mux),
+	)
 
 	// Start server on port specified above
 	log.Printf("Starting server on :%s...\n", port)
