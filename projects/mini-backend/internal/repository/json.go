@@ -6,18 +6,25 @@ import (
 	"maps"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/models"
 )
 
-var filePath = filepath.Join("./internal/db", "storage.json")
+var (
+	mu       sync.Mutex
+	filePath = filepath.Join("./internal/db", "storage.json")
+)
 
 func WriteJsonFile(data models.User) (bool, error) {
-	existingData, _ := ReadJsonFile()
+	mu.Lock()
+	defer mu.Unlock()
+
+	existingData, _ := readJsonFile()
 	if existingData != nil {
-		maps.Copy(data, existingData)
+		maps.Copy(existingData, data)
 	}
-	fileData, err := json.MarshalIndent(data, "", "  ")
+	fileData, err := json.MarshalIndent(existingData, "", "  ")
 	if err != nil {
 		fmt.Printf("failed to marshall data: %q", err)
 		return false, err
@@ -32,6 +39,9 @@ func WriteJsonFile(data models.User) (bool, error) {
 }
 
 func ReadJsonFileByKey(key string) (*string, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("failed to read from json file(%s): %q", filePath, err)
@@ -46,7 +56,7 @@ func ReadJsonFileByKey(key string) (*string, error) {
 	return &value, nil
 }
 
-func ReadJsonFile() (map[string]string, error) {
+func readJsonFile() (map[string]string, error) {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Printf("failed to read from json file(%s): %q", filePath, err)
@@ -55,4 +65,10 @@ func ReadJsonFile() (map[string]string, error) {
 	var res models.User
 	json.Unmarshal(content, &res)
 	return res, nil
+}
+
+func ReadJsonFileSafe() (map[string]string, error) {
+	mu.Lock()
+	defer mu.Unlock()
+	return readJsonFile()
 }
