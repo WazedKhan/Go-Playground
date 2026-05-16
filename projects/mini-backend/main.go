@@ -17,6 +17,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/get", handler.Get)
 	mux.HandleFunc("/set", handler.Set)
+	mux.HandleFunc("/health", middleware.GetHealth)
 
 	port := ":8000"
 	fmt.Println("Server is running on port" + port)
