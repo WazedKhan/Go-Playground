@@ -3,15 +3,18 @@ package middleware
 import (
 	"fmt"
 	"net/http"
+	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/models"
 )
 
 var (
-	totalGetRequest  int64
-	totalPostRequest int64
-	totalRequest     int64
+	totalGetRequest  atomic.Int64
+	totalPostRequest atomic.Int64
+	totalRequest     atomic.Int64
+	mu sync.Mutex
 )
 
 var latency = make(map[string]models.RouteMetrics)
@@ -39,30 +42,33 @@ func MetricsMiddleware(next http.Handler) http.Handler {
 		end := time.Now()
 
 		duration := end.Sub(start)
+		mu.Lock()
 		existing := latency[r.URL.Path]
-
 		latency[r.URL.Path] = models.RouteMetrics{
 			Count:         existing.Count + 1,
 			TotalDuration: existing.TotalDuration + duration,
 		}
+		mu.Unlock()
 
 		switch r.Method {
 		case "GET":
-			totalGetRequest++
+			totalGetRequest.Add(1)
 		case "POST":
-			totalPostRequest++
+			totalPostRequest.Add(1)
 		}
 
 		// track every request
-		totalRequest++
+		totalRequest.Add(1)
 	})
 }
 
 func GetRouteMetrics() models.Metrics {
+	mu.Lock()
+	defer mu.Unlock()
 	return models.Metrics{
-		TotalRequests: totalRequest,
-		GetRequests:   totalGetRequest,
-		PostRequests:  totalPostRequest,
+		TotalRequests: totalRequest.Load(),
+		GetRequests:   totalGetRequest.Load(),
+		PostRequests:  totalPostRequest.Load(),
 		Latency:       latency,
 	}
 }
