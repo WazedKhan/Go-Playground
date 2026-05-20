@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"os/signal"
+	"sync"
+	"syscall"
+	"time"
 
 	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/handler"
 	middleware "github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/metrics"
@@ -20,13 +25,48 @@ func main() {
 	mux.HandleFunc("/health", middleware.GetHealth)
 	mux.HandleFunc("/metrics", middleware.RouteMetrics)
 
+	var wg sync.WaitGroup
+	const shutDownTimeOut = 25 * time.Second // found that kubernetes waits 30 before kill -9
 	port := ":8000"
-	fmt.Println("Server is running on port" + port)
 	middleware := middleware.LoggerMiddleware(
-		middleware.MetricsMiddleware(mux),
+		middleware.MetricsMiddleware(
+			middleware.TrackRequests(&wg, mux),
+		),
 	)
+	srv := &http.Server{
+		Addr:    port,
+		Handler: middleware,
+	}
 
-	// Start server on port specified above
-	log.Printf("Starting server on :%s...\n", port)
-	log.Fatal(http.ListenAndServe(port, middleware))
+	go func() {
+		log.Printf("Starting server on http://localhost%s/\n", port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	// handling gracefully shutdown
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	<-ctx.Done()
+	log.Println("Shutting down... (Ctrl+C again to force)")
+	stop()
+
+	shutCtx, cancel := context.WithTimeout(context.Background(), shutDownTimeOut)
+	defer cancel()
+
+	go srv.Shutdown(shutCtx)
+	waitDone := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(waitDone)
+	}()
+
+	select {
+	case <-waitDone:
+		log.Println("all request done, clean exit")
+	case <-shutCtx.Done():
+		log.Printf("waited %q, forcing shutdown\n", shutDownTimeOut)
+	}
 }

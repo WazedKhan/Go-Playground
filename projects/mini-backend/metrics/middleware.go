@@ -14,7 +14,7 @@ var (
 	totalGetRequest  atomic.Int64
 	totalPostRequest atomic.Int64
 	totalRequest     atomic.Int64
-	mu sync.Mutex
+	mu               sync.Mutex
 )
 
 var latency = make(map[string]models.RouteMetrics)
@@ -59,6 +59,15 @@ func MetricsMiddleware(next http.Handler) http.Handler {
 
 		// track every request
 		totalRequest.Add(1)
+	})
+}
+
+func TrackRequests(wg *sync.WaitGroup, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		wg.Add(1)
+		defer wg.Done() // so this will send signal that request is done
+
+		next.ServeHTTP(w, r)
 	})
 }
 
