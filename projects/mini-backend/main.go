@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"sync"
 	"syscall"
@@ -19,6 +20,11 @@ func Greeting(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	apiKey := os.Getenv("API_KEY")
+	if apiKey == "" {
+		log.Fatal("API_KEY is missing")
+	}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/get", handler.Get)
 	mux.HandleFunc("/set", handler.Set)
@@ -30,7 +36,9 @@ func main() {
 	port := ":8000"
 	middleware := middleware.LoggerMiddleware(
 		middleware.MetricsMiddleware(
-			middleware.TrackRequests(&wg, mux),
+			middleware.TrackRequests(&wg,
+				middleware.APIKeyMiddleware(apiKey, mux),
+			),
 		),
 	)
 	srv := &http.Server{
