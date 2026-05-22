@@ -59,6 +59,9 @@ func ReadJsonFileByKey(key string) (*string, error) {
 func readJsonFile() (map[string]string, error) {
 	content, err := os.ReadFile(filePath)
 	if err != nil {
+		if os.IsNotExist(err) {
+			return map[string]string{}, nil
+		}
 		fmt.Printf("failed to read from json file(%s): %q", filePath, err)
 	}
 
