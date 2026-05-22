@@ -14,8 +14,8 @@ func Set(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get("key")
 	value := r.URL.Query().Get("value")
 	data := models.User{key: value}
-	log.Println("Going sleep for two minute ... .")
-	time.Sleep(2 * time.Minute)
+	log.Println("Going sleep for two second ... .")
+	time.Sleep(20 * time.Second)
 	ok, err := repository.WriteJsonFile(data)
 	if !ok {
 		fmt.Fprint(w, err)
