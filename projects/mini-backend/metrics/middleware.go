@@ -74,7 +74,7 @@ func TrackRequests(wg *sync.WaitGroup, next http.Handler) http.Handler {
 func APIKeyMiddleware(validKey string, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		apiKey := r.Header.Get("X-API-Key")
-		if apiKey != validKey  {
+		if apiKey != validKey {
 			http.Error(w, "Unauthorized: Invalid API Key", http.StatusUnauthorized)
 			return
 		}

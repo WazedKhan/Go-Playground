@@ -2,9 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"log"
 	"net/http"
-	"time"
 
 	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/models"
 	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/repository"
@@ -14,8 +12,6 @@ func Set(w http.ResponseWriter, r *http.Request) {
 	key := r.URL.Query().Get("key")
 	value := r.URL.Query().Get("value")
 	data := models.User{key: value}
-	log.Println("Going sleep for two second ... .")
-	time.Sleep(20 * time.Second)
 	ok, err := repository.WriteJsonFile(data)
 	if !ok {
 		fmt.Fprint(w, err)
