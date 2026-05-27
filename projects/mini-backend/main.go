@@ -25,11 +25,14 @@ func main() {
 	if apiKey == "" {
 		log.Fatal("API_KEY is missing")
 	}
-	filePath := "./internal/db/data.db"
-	if err := repository.InitSQLIte(filePath); err != nil {
-		log.Fatalf("failed to init sqlite: %v", err)
+	connStr := os.Getenv("DATABASE_URL")
+	if connStr == "" {
+		log.Fatal("DATABASE_URL is missing")
 	}
-	repository.SetStorage(repository.NewSqliteStorage())
+	if err := repository.InitPostgres(connStr); err != nil {
+		log.Fatalf("failed to init postgres: %v", err)
+	}
+	repository.SetStorage(repository.NewPostgresStorage())
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/get", handler.Get)

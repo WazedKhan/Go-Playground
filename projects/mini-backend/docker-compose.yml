@@ -6,20 +6,56 @@ services:
     container_name: mini-backend-1
     environment:
       - API_KEY=secret-key
+      - DATABASE_URL=postgres://admin:super-duper-strong-one@postgres:5432/data
+
     ports:
       - "8001:8000"
-    volumes:
-      - mini-backend-db:/app/internal/db/
+
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   mini-backend-2:
     image: mini-backend:latest
     container_name: mini-backend-2
     environment:
       - API_KEY=secret-key
+      - DATABASE_URL=postgres://admin:super-duper-strong-one@postgres:5432/data
     ports:
       - "8002:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      - POSTGRES_PASSWORD=super-duper-strong-one
+      - POSTGRES_USER=admin
+      - POSTGRES_DB=data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d data"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "5432:5432"
     volumes:
-      - mini-backend-db:/app/internal/db/
+      - postgres:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - mini-backend-1
+      - mini-backend-2
 
 volumes:
-  mini-backend-db: # keeping path empty means docker will decides where this volume will live
+  postgres: #as its a database lets docker handle it  docker will make sure it survives container restarts, better performance and portable across OSes
