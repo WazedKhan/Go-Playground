@@ -13,7 +13,7 @@ var	db *sql.DB
 
 func InitSQLIte(path string) error {
 	var err error
-	db, err = sql.Open("sqlite3", path)
+	db, err = sql.Open("sqlite", path)
 	if err != nil {
 		return fmt.Errorf("failed to open sqlite3 db, %w:", err)
 	}
