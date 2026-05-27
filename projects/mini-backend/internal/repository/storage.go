@@ -16,3 +16,9 @@ type sqliteStorage struct{}
 func NewSqliteStorage() StorageSelector {
 	return &sqliteStorage{}
 }
+
+type postgresStorage struct {}
+
+func NewPostgresStorage() StorageSelector {
+	return &postgresStorage{}
+}
