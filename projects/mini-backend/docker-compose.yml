@@ -1,0 +1,25 @@
+name: mini-backend
+services:
+  mini-backend-1:
+    image: mini-backend:latest
+    build: .
+    container_name: mini-backend-1
+    environment:
+      - API_KEY=secret-key
+    ports:
+      - "8001:8000"
+    volumes:
+      - mini-backend-db:/app/internal/db/
+
+  mini-backend-2:
+    image: mini-backend:latest
+    container_name: mini-backend-2
+    environment:
+      - API_KEY=secret-key
+    ports:
+      - "8002:8000"
+    volumes:
+      - mini-backend-db:/app/internal/db/
+
+volumes:
+  mini-backend-db: # keeping path empty means docker will decides where this volume will live
