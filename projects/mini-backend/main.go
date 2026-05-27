@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/handler"
+	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/repository"
 	middleware "github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/metrics"
 )
 
@@ -24,6 +25,11 @@ func main() {
 	if apiKey == "" {
 		log.Fatal("API_KEY is missing")
 	}
+	filePath := "./internal/db/data.db"
+	if err := repository.InitSQLIte(filePath); err != nil {
+		log.Fatalf("failed to init sqlite: %v", err)
+	}
+	repository.SetStorage(repository.NewSqliteStorage())
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/get", handler.Get)

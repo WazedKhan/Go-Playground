@@ -24,7 +24,6 @@ WORKDIR /app
 
 # copy the binary from the builder stage: this time we are not copying source code but binary that we already build in stage 1
 COPY --from=builder /app/main .
-# COPY internal/db/storage.json ./internal/db/storage.json
 
 EXPOSE 8000
 CMD [ "./main" ]
