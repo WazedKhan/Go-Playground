@@ -13,13 +13,16 @@ import (
 
 var (
 	mu       sync.Mutex
-	filePath = filepath.Join("./internal/db", "storage.json")
+	jsonFilePath = filepath.Join("./internal/db", "storage.json")
+	sqlFilePath = filepath.Join("./internal/db", "data.db")
 )
 
-func WriteJsonFile(data models.User) (bool, error) {
+func (j *jsonStorage)Save(key, value string) (bool, error) {
 	mu.Lock()
 	defer mu.Unlock()
-
+	data := models.User{
+		key:value,
+	}
 	existingData, _ := readJsonFile()
 	if existingData != nil {
 		maps.Copy(existingData, data)
@@ -30,7 +33,7 @@ func WriteJsonFile(data models.User) (bool, error) {
 		return false, err
 	}
 
-	writeErr := os.WriteFile(filePath, fileData, 0644)
+	writeErr := os.WriteFile(jsonFilePath, fileData, 0644)
 	if writeErr != nil {
 		fmt.Printf("failed to write into json file: %q", writeErr)
 		return false, writeErr
@@ -38,13 +41,13 @@ func WriteJsonFile(data models.User) (bool, error) {
 	return true, nil
 }
 
-func ReadJsonFileByKey(key string) (*string, error) {
+func (j jsonStorage)Get(key string) (*string, error) {
 	mu.Lock()
 	defer mu.Unlock()
 
-	content, err := os.ReadFile(filePath)
+	content, err := os.ReadFile(jsonFilePath)
 	if err != nil {
-		fmt.Printf("failed to read from json file(%s): %q", filePath, err)
+		fmt.Printf("failed to read from json file(%s): %q", jsonFilePath, err)
 	}
 
 	var res models.User
@@ -57,12 +60,12 @@ func ReadJsonFileByKey(key string) (*string, error) {
 }
 
 func readJsonFile() (map[string]string, error) {
-	content, err := os.ReadFile(filePath)
+	content, err := os.ReadFile(jsonFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return map[string]string{}, nil
 		}
-		fmt.Printf("failed to read from json file(%s): %q", filePath, err)
+		fmt.Printf("failed to read from json file(%s): %q", jsonFilePath, err)
 	}
 
 	var res models.User
