@@ -1,0 +1,12 @@
+apiVersion: apps/v1
+kind: Service
+metadata:
+  name: mini-backend-deployment
+spec:
+  type: NodePort
+  selector:
+    app: mini-backend
+  ports:
+    - protocol: TCP
+      ports: 80
+      targetPort: 8000
