@@ -22,6 +22,12 @@ spec:
         imagePullPolicy: Never
         env:
         - name: API_KEY
-          value: secret-key
+          valueFrom:
+            secretKeyRef:
+              name: mini-backend-secrets
+              key: API_KEY
         - name: DATABASE_URL
-          value: postgres://admin:super-duper-strong-one@postgres:5432/data
+          valueFrom:
+            secretKeyRef:
+              name: mini-backend-secrets
+              key: DATABASE_URL
