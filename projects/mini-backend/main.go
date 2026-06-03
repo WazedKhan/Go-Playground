@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/handler"
+	"github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/internal/repository"
 	middleware "github.com/WazedKhan/Go-Playground/tree/main/projects/mini-backend/metrics"
 )
 
@@ -28,10 +29,10 @@ func main() {
 	if connStr == "" {
 		log.Fatal("DATABASE_URL is missing")
 	}
-	// if err := repository.InitPostgres(connStr); err != nil {
-	// 	log.Fatalf("failed to init postgres: %v", err)
-	// }
-	// repository.SetStorage(repository.NewPostgresStorage())
+	if err := repository.InitPostgres(connStr); err != nil {
+		log.Fatalf("failed to init postgres: %v", err)
+	}
+	repository.SetStorage(repository.NewPostgresStorage())
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/get", handler.Get)
